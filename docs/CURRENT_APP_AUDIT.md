@@ -157,12 +157,19 @@ Ensure these are exactly configured in your production or local `.env` (without 
 
 ### Required Supabase Schema Checklist
 **Active Tables/Resources** (RLS should be enabled for production. Policies must enforce center_id / membership isolation. Any disabled-RLS setup is local/dev-only and must not be treated as production-ready):
+- `centers`
+- `profiles`
+- `center_memberships`
+- `center_settings`
 - `customers`
 - `appointments`
+- `service_categories`
 - `services`
 - `employees`
 - `products`
 - `expenses`
+
+*(Apply `docs/SUPABASE_BASE_SCHEMA_BOOTSTRAP.sql` to initialize these tables without enabling checkout.)*
 
 **Pending Checkout/Finance Schema** (Must remain unapplied during this QA phase):
 - `invoices`

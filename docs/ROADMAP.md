@@ -121,6 +121,13 @@
 - **Verification Commands / Steps**: `npx tsc --noEmit && npx vitest run --passWithNoTests && npm run build`.
 - **Explicitly out of scope**: Real checkout processing, applying any remote SQL scripts.
 
+## Phase 10A.5: Supabase Base Schema Bootstrap
+- **Goal**: Create the safe foundation of SQL tables and Row Level Security for live CRUD testing, explicitly excluding complex checkout logic. Enable the developer to seed the first `VITE_CENTER_ID`.
+- **Tasks**: Authored `docs/SUPABASE_BASE_SCHEMA_BOOTSTRAP.sql` mapping `centers`, `profiles`, `center_memberships`, and all standard business entities. Established safe user isolation RLS. Drafted admin seed instructions.
+- **Acceptance Criteria**: The SQL file is safely documented. The frontend requires no code changes.
+- **Verification Commands / Steps**: Application of SQL script against live Supabase project by the administrator. Retrieve the generated `VITE_CENTER_ID` into `.env`.
+- **Explicitly out of scope**: Processing checkout RPC logic or finalizing `invoices`/`payments` tables. Does not alter frontend code.
+
 ## Phase 10B: Checkout RPC & Invoice-payment Backend Activation
 - **Goal**: Apply the backend Supabase schema and Remote Procedure Calls (RPC) to unlock full financial functionality.
 - **Tasks**: Execute `process_checkout_v1` SQL from `docs/PHASE_5B_CHECKOUT_SQL_DRAFT.md`. Deploy pending `invoices` and `invoice_items` schemas globally.
