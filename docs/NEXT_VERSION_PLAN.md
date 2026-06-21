@@ -1,0 +1,1 @@
+# NEXT VERSION PLAN — v1.1
