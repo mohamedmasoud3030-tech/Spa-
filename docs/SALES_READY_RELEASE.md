@@ -1,205 +1,183 @@
 # SALES-READY RELEASE — Definition & Criteria
-**Product:** SPA Management App  
-**Rule:** The product is not sales-ready while any fake operating mode is reachable, while live CRUD is unverified, or while the deployment path is undocumented.
+**Rule:** The product is not delivered to any customer — paid or pilot — until a live Supabase connection is established and QA-verified.
 
 ---
 
 ## DEFINITION
 
-> Sales-ready means: a new customer can be onboarded, their real data persists, their staff can operate the system, and the experience depends on zero fake data, zero fake sessions, and zero unverified features.
+> Sales-ready means: a live Supabase project is connected, a real admin user can log in, all implemented CRUD operations persist real data, no fake mode is reachable, and the customer has a deployment guide they can follow independently.
 
 ---
 
-## WHAT "SALES-READY" IS NOT
+## DELIVERY PREREQUISITE — SUPABASE MUST BE LIVE
 
-| ❌ Not acceptable | Reason |
+**This supersedes all other criteria.** The product must not be shown, demoed, or delivered in any state where data does not persist to a real Supabase database.
+
+| Why | Detail |
 |---|---|
-| App builds and tests pass | Necessary but not sufficient |
-| App looks good in any fake/demo mode | Preview Mode is removed — no such mode exists |
-| Features that are not built described as "coming soon" without prior disclosure | Must disclose to buyer before purchase |
-| Manual QA skipped | Untested live behavior is not sales-ready |
+| Preview Mode is removed | There is no fallback mode — the app requires a real Supabase connection to function |
+| Trust | A customer who sees fake or empty data cannot evaluate the product honestly |
+| Data safety | Untested RLS in a live environment is a data breach risk |
+| Support | Delivering a product without a verified connection creates unresolvable support tickets |
 
 ---
 
-## CRITERION 1 — No Fake Operating Mode
-
-**Status: ✅ Achieved in code**
+## CRITERION 1 — No Fake Operating Mode ✅ ACHIEVED
 
 | Check | Verified |
 |---|---|
-| `VITE_DATA_BACKEND` only accepts `"supabase"` | ✅ `env.ts` line 8: `type BackendMode = "supabase"` |
-| Missing env → hard error screen | ✅ `parseEnv()` throws `EnvironmentConfigurationError` |
-| `UserRole.PREVIEW` does not exist | ✅ Absent from `Session.ts` |
-| "Enter Preview Mode" button absent | ✅ Removed from `LoginPage.tsx` |
-| Preview adapter directory absent | ✅ `src/infrastructure/preview/` deleted |
-| Amber preview banner absent | ✅ Removed from `route-guards.tsx` |
+| `BackendMode = "supabase"` only | ✅ `env.ts` line 8 |
+| Missing env → `EnvironmentConfigurationError` | ✅ `parseEnv()` throws |
+| `UserRole.PREVIEW` absent | ✅ `Session.ts` |
+| "Enter Preview Mode" button absent | ✅ `LoginPage.tsx` |
+| `src/infrastructure/preview/` deleted | ✅ |
+| Preview banner absent from route guards | ✅ `route-guards.tsx` |
 
 ---
 
-## CRITERION 2 — Real Authentication Works
+## CRITERION 2 — Live Supabase Connection Verified ❌ PENDING
 
-**Status: ❌ Pending live QA**
+**This is the primary blocker.**
 
 | Check | Status |
 |---|---|
-| Login with ADMIN credentials succeeds | ❌ Not tested against live Supabase |
-| Login with STAFF credentials succeeds | ❌ Not tested |
-| STAFF blocked from `/reports`, `/settings` | ❌ Not tested |
-| Session persists on page refresh | ❌ Not tested |
-| Logout clears session | ❌ Not tested |
-| Incorrect credentials → error (no crash) | ❌ Not tested |
+| Supabase project created | ❌ |
+| Base schema applied (`SUPABASE_BASE_SCHEMA_BOOTSTRAP.sql`) | ❌ |
+| Admin user created and linked to center | ❌ |
+| `.env` configured with real credentials | ❌ |
+| `npm run preflight:supabase` passes | ❌ |
+| App boots without config errors | ❌ |
+| Login succeeds with real credentials | ❌ |
+
+See `CURRENT_VERSION_CLOSURE.md` — Mandatory Gate section for exact steps.
 
 ---
 
-## CRITERION 3 — Real Data Persistence Works
-
-**Status: ❌ Pending live QA**
+## CRITERION 3 — Real Data Persistence Verified ❌ PENDING
 
 All operations must complete against real Supabase and survive page reload.
 
-| Module | Operations | Status |
-|---|---|---|
-| Customers | C / R / U / D | ❌ Not live-tested |
-| Appointments | C / R / U / D | ❌ Not live-tested |
-| Services | C / R / U / D | ❌ Not live-tested |
-| Employees | C / R / U / D | ❌ Not live-tested |
-| Products | C / R / U / D | ❌ Not live-tested |
-| Expenses | C / R / D | ❌ Not live-tested |
-| Dashboard operational counts | R | ❌ Not live-tested |
-| Appointment report | R | ❌ Not live-tested |
-| Inventory report | R | ❌ Not live-tested |
+| Module | Create | Read | Update | Delete |
+|---|---|---|---|---|
+| Customers | ❌ | ❌ | ❌ | ❌ |
+| Appointments | ❌ | ❌ | ❌ | ❌ |
+| Services | ❌ | ❌ | ❌ | ❌ |
+| Employees | ❌ | ❌ | ❌ | ❌ |
+| Products | ❌ | ❌ | ❌ | ❌ |
+| Expenses | ❌ | ❌ | N/A (v1.1) | ❌ |
+| Dashboard counts | — | ❌ | — | — |
+| Appointment report | — | ❌ | — | — |
+| Inventory report | — | ❌ | — | — |
 
 ---
 
-## CRITERION 4 — Blocked Features Disclosed Before Sale
-
-For v1.0, the following features are intentionally incomplete. The buyer must know before purchase.
-
-| Feature | v1.0 Status | Disclosure required |
-|---|---|---|
-| POS Checkout / Billing | Not functional | Yes |
-| Invoice printing | Not functional | Yes |
-| Financial dashboard (P&L, revenue) | Not functional | Yes |
-| Sales reports | Not functional | Yes |
-| Customer visit history | Not functional | Yes |
-| Settings mutations (name, logo, backup) | Not functional | Yes |
-| Expense editing | Not functional | Yes |
-
-The UI shows "Backend Required" warnings for these. That is necessary but not sufficient — the sales conversation must set expectations before evaluation.
-
----
-
-## CRITERION 5 — Data Isolation Verified
-
-**Status: ❌ Pending live QA**
-
-RLS policies are defined in schema but not yet tested against a live Supabase instance.
+## CRITERION 4 — Auth & Role Separation Verified ❌ PENDING
 
 | Check | Status |
 |---|---|
-| RLS policies exist in `SUPABASE_BASE_SCHEMA_BOOTSTRAP.sql` | ✅ |
-| `VITE_CENTER_ID` mismatch → `UNAUTHORIZED_CENTER_MEMBERSHIP` error | ✅ Implemented in `AppContext.tsx` |
-| User from Center A cannot read Center B data (live test) | ❌ Not tested |
-
-For v1.0 (single-center, single-customer), cross-tenant isolation is still a production safety requirement — not just a SaaS concern.
-
----
-
-## CRITERION 6 — Backup & Recovery Path Defined
-
-**v1.0 (Supabase-hosted):**
-- Supabase Pro plan provides automated daily backups
-- Manual export: Settings → Export Data (`BACKEND_METHOD_UNSUPPORTED` in v1.0 — ships in v1.1)
-- Customer deployment guide must document: "Your data is stored in Supabase and backed up daily"
-
-**v2.0 (Desktop EXE — future):**
-- Backup = copy of local SQLite `.db` file
-- Restore = replace `.db` file from backup
-- Both built into the application
+| ADMIN login works | ❌ |
+| STAFF login works | ❌ |
+| STAFF blocked from `/reports` and `/settings` | ❌ |
+| Session persists on page refresh | ❌ |
+| Wrong credentials → error (not crash) | ❌ |
 
 ---
 
-## CRITERION 7 — Deployment Path Documented
+## CRITERION 5 — Blocked Features Disclosed Before Sale ⚠️
 
-**Status: ❌ `docs/CUSTOMER_DEPLOYMENT_GUIDE.md` not yet written**
+The buyer must know what v1.0 does and does not include before purchasing.
 
-Required content:
-1. Create a Supabase project
-2. Apply `SUPABASE_BASE_SCHEMA_BOOTSTRAP.sql`
-3. Create first admin user
-4. Create center row + membership
-5. Deploy the web app (Vercel or self-hosted)
-6. Set environment variables
-7. First login walkthrough
-8. How to add staff users
+| Feature | v1.0 | v1.1 |
+|---|---|---|
+| Customer, Appointment, Service, Employee, Product management | ✅ | ✅ |
+| Expense tracking (create/delete) | ✅ | ✅ |
+| Operational dashboard (counts) | ✅ | ✅ |
+| Appointment + Inventory reports | ✅ | ✅ |
+| **POS Checkout / Billing** | ❌ | ✅ |
+| **Invoice printing** | ❌ | ✅ |
+| **Financial dashboard (P&L, revenue)** | ❌ | ✅ |
+| **Sales reports** | ❌ | ✅ |
+| **Customer visit history** | ❌ | ✅ |
+| **Settings mutations (logo, name, backup)** | ❌ | ✅ |
+| **Expense editing** | ❌ | ✅ |
 
 ---
 
-## CRITERION 8 — Arabic RTL Device-Tested
-
-**Status: ❌ Not tested on physical devices**
+## CRITERION 6 — Data Isolation Verified ❌ PENDING
 
 | Check | Status |
 |---|---|
-| Arabic RTL layout on Android (Chrome) | ❌ Pending |
-| Arabic RTL layout on iOS (Safari) | ❌ Pending |
-| Arabic font rendering (no tofu/boxes) | ❌ Pending |
-| RTL direction in modals, drawers, forms | ❌ Pending |
+| RLS policies in schema | ✅ Defined in `SUPABASE_BASE_SCHEMA_BOOTSTRAP.sql` |
+| `center_id` mismatch → `UNAUTHORIZED_CENTER_MEMBERSHIP` | ✅ Implemented in `AppContext.tsx` |
+| Cross-center read blocked (live test) | ❌ Not yet tested |
 
 ---
 
-## SALES-READY GATE (v1.0)
+## CRITERION 7 — Deployment Path Documented ❌ PENDING
 
-All must be ✅ before first paying customer:
+`docs/CUSTOMER_DEPLOYMENT_GUIDE.md` does not yet exist.
 
-**Technical**
-- [x] Preview Mode removed from source ✅
-- [ ] Supabase staging environment created and schema applied
-- [ ] Preflight passes (`npm run preflight:supabase`)
-- [ ] Full live browser QA passed (`SUPABASE_LIVE_QA_RUNBOOK.md`)
-- [ ] RLS cross-center isolation tested
-- [ ] `tsc --noEmit` clean ✅
-- [ ] `vitest run` 74/74 ✅
-- [ ] `npm run build` success ✅
-
-**Documentation**
-- [ ] `CUSTOMER_DEPLOYMENT_GUIDE.md` written and reviewed
-- [ ] `MANUAL_PRE_SALE_ACCEPTANCE_CHECKLIST.md` signed off
-- [ ] v1.0 feature scope disclosed in sales materials
-
-**Quality**
-- [ ] Arabic RTL tested on Android + iOS
-- [ ] Error states tested (network failure, bad auth, missing env)
-- [ ] No crashes observed during QA session
+A customer must be able to deploy the app independently, without requiring developer involvement.
 
 ---
 
-## V1.0 — WHAT CAN BE SOLD
+## CRITERION 8 — Arabic RTL Device-Tested ❌ PENDING
 
-**Core management features (verified in code, QA pending):**
-- Complete customer management (CRM)
-- Appointment scheduling and status tracking
-- Service catalog management
-- Employee management and scheduling
-- Product/inventory catalog
-- Expense tracking
-- Operational reports (appointments booked, inventory levels)
-- Real-time operational dashboard
-- Role-based access (Admin vs Staff)
-- Arabic + English bilingual interface
-
-**Honest positioning:** v1.0 is the **operational backbone** of the salon — scheduling, staffing, catalog, and inventory. Billing and financial reporting arrive in v1.1.
+| Check | Status |
+|---|---|
+| Layout correct on Android (Chrome) | ❌ |
+| Layout correct on iOS (Safari) | ❌ |
+| No text overflow or cut-off | ❌ |
+| Forms and modals work in RTL | ❌ |
 
 ---
 
-## SALES-READY GATE (v2.0 — Desktop EXE)
+## SALES-READY GATE CHECKLIST
+
+**All must be ✅ before first customer delivery:**
+
+```
+Technical:
+[x] Preview Mode removed from source
+[x] tsc --noEmit → 0 errors
+[x] vitest run → 74/74
+[x] npm run build → clean PWA
+[ ] Supabase project live + schema applied     ← PRIMARY BLOCKER
+[ ] npm run preflight:supabase passes
+[ ] Login works with real credentials
+[ ] Full live QA (SUPABASE_LIVE_QA_RUNBOOK.md) signed off
+[ ] RLS cross-center isolation tested
+
+Documentation:
+[ ] CUSTOMER_DEPLOYMENT_GUIDE.md written
+[ ] MANUAL_PRE_SALE_ACCEPTANCE_CHECKLIST.md signed
+[ ] v1.0 feature scope communicated to buyer
+
+Quality:
+[ ] Arabic RTL tested on Android + iOS
+[ ] Error states tested (network failure, bad credentials)
+[ ] No crashes in QA session
+```
+
+---
+
+## V1.0 POSITIONING
+
+**What v1.0 is:** The operational backbone of a salon — scheduling, staffing, catalog, and inventory. Every core management feature is real and data-persisted.
+
+**What v1.0 is not:** A billing system. POS checkout, invoices, and financial reporting are v1.1 features.
+
+**How to sell v1.0:** "Start managing your salon today. Billing features arrive shortly in v1.1 — typically within 4–6 weeks."
+
+---
+
+## V2.0 DESKTOP EXE — FUTURE GATE
 
 Same criteria as above, plus:
 
-- [ ] Windows 10 + Windows 11 installer QA passed
+- [ ] Windows 10 + 11 installer QA passed
 - [ ] Offline operation verified (zero internet required)
 - [ ] Arabic RTL in WebView2 verified
 - [ ] Backup/restore round-trip tested
 - [ ] Auto-update works
-- [ ] Code-signed EXE (no SmartScreen warning)
-- [ ] All SQLite adapters tested to same standard as Supabase adapters
+- [ ] EXE is code-signed (no SmartScreen warning)
