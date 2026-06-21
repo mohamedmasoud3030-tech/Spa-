@@ -1,8 +1,10 @@
 # Phase 5B Checkout Design
 
+> Current source of truth: v1.0 supports only `VITE_DATA_BACKEND=supabase`. Any checkout work remains v1.1 scope unless explicitly moved by a later product decision.
+
 ## Environment Variables
 The application strictly depends on the following environment variables (found in `src/config/env.ts`):
-- `VITE_DATA_BACKEND`: Determines the backend mode (`preview` vs `supabase`).
+- `VITE_DATA_BACKEND`: Must be `supabase` for the released v1.0 PWA.
 - `VITE_SUPABASE_URL`: Supabase URL for initialization.
 - `VITE_SUPABASE_PUBLISHABLE_KEY`: Supabase anon key.
 - `VITE_CENTER_ID`: Strict UUID defining the single-branch tenant context.

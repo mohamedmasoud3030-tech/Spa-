@@ -1,6 +1,6 @@
 # Supabase Frontend Activation Checklist
 
-Before the application explicitly moves off the fully-isolated local-memory `Preview Mode` and natively initializes `supabase-js`, these boundaries must be verified.
+Before the v1.0 application is considered ready, it must boot only through real `supabase-js` configuration. Preview Mode is removed and must not be used as a fallback.
 
 ## 1. Environment Parsing
 - [x] **Verified Variable:** `VITE_DATA_BACKEND=supabase` switches the UI orchestrators.
@@ -9,7 +9,7 @@ Before the application explicitly moves off the fully-isolated local-memory `Pre
 - [x] **Verified Absence:** No keys named `_SECRET_`, `_SERVICE_ROLE_`, or generic passwords are functionally ingested by `env.ts`.
 
 ## 2. Security Defaults
-- [x] **Preview Default:** Removing or failing to provide proper Supabase domains successfully gracefully defaults the client entirely into isolated `Preview Mode`.
+- [ ] **No Preview Default:** Removing or failing to provide proper Supabase configuration produces a hard blocking `EnvironmentConfigurationError`.
 - [x] **Browser Isolation:** Supabase client bindings strictly pull from the VITE_ prefixed domains, preventing node-environment elevated secrets from breaching the public rollup configurations.
 - [x] **Client Initialization Strategy:** Lazy creation operates flawlessly, preserving the memory block correctly when offline.
 

@@ -1,59 +1,48 @@
 # Demo Operator Guide
 
-This guide ensures operators can confidently present the Kanzy Spa unified management application to prospective owners or stakeholders while adhering to the safe, functional workflows.
+This guide ensures operators can present the Kanzy Spa unified management application while staying aligned with the current product scope.
 
-## 1. How to Launch Preview Mode
-The application heavily relies on an entirely isolated `Preview Mode`. Because live mutations across transactional tables are frozen to ensure sale readiness and zero risk, the demo operates locally against dynamic mocks that resemble actual data constraints.
-To ensure the app boots in Preview mode, verify `.env.local` lacks active `VITE_SUPABASE_URL` bindings or ensure the environment loader maps the app back to fallback defaults correctly.
+## 1. How to Launch a Demo
 
-## 2. Demo Login Behavior
-When in `Preview Mode`, you can use any username/password combination. The login flow simulates a successful handshake and resolves the session to `{ status: "preview" }`.
-If booted in true Supabase mode, the login relies on the deployed `auth.users` pool.
+Preview Mode is removed. Product demos must run against a configured Supabase backend:
+
+- `VITE_DATA_BACKEND=supabase`
+- `VITE_SUPABASE_URL`
+- `VITE_SUPABASE_PUBLISHABLE_KEY`
+- `VITE_CENTER_ID`
+- `VITE_BRANCH_MODE=single`
+
+Use `docs/SUPABASE_BASE_SCHEMA_BOOTSTRAP.sql` as the canonical v1.0 bootstrap schema. Do not use mock data, fake checkouts, or Preview Mode as demo evidence.
+
+## 2. Login
+
+Use a real Supabase Auth user with a valid membership for `VITE_CENTER_ID`. Missing or invalid configuration must block startup instead of falling back to a demo session.
 
 ## 3. Recommended Walkthrough Order
-1. **Login**: Demonstrate the smooth ambient transition.
-2. **Dashboard**: Show the analytics and aggregated POS values.
-3. **App Header & Preferences**: Flip the UI language from English to Arabic, showing the true RTL structural mirroring.
-4. **Customers**: View lists, view customer history logs.
-5. **Services**: Navigate the services management. 
-6. **POS System**: Create a mock checkout (which remains fully supported strictly within the UI-isolated preview logic) and print the receipt.
 
-## 4. Customer Management Demonstration
-Create, update, and delete actions for Customers are supported end-to-end within Preview mode and fully mapped for backend Supabase mode. Demonstrate inserting a new customer record to highlight the fast response times and safe input validation.
+1. **Login**: Demonstrate real authentication.
+2. **Dashboard**: Show operational metrics that are backed by available Supabase data.
+3. **App Header & Preferences**: Flip the UI language from English to Arabic, showing RTL structural mirroring.
+4. **Customers**: Create, update, and delete real customer records.
+5. **Services**: Navigate service management and show real CRUD behavior.
+6. **Appointments**: Demonstrate booking flow using persisted Supabase records.
+7. **POS System**: Show cart composition and validation only. Checkout and print are v1.1 work.
+8. **Reports**: Show implemented operational reports; financial reports are v1.1 work.
+9. **Mobile**: Use Chrome DevTools to showcase 390px layouts or perform the walkthrough directly on an iPad.
 
-## 5. Service Management Demonstration
-Showcase adding new salon services, specifying prices, and attaching duration minutes. You can also manipulate pricing updates inside the modal.
+## 4. Current Scope Boundaries
 
-## 6. Appointment Demonstration
-Switch to the built-in calendar to demonstrate the day-view, dragging appointments, and editing statuses constraint. Mention that backend integration for appointments is currently being synchronized securely.
+- v1.0 is a single-customer, single-center Supabase PWA with real auth and real CRUD.
+- Checkout RPC, invoice print, financial reports, settings mutations, and expense edit UI are v1.1 work.
+- Windows Desktop EXE delivery is v2.0 work using Tauri v2 + SQLite with no Supabase dependency.
+- Do not modify `.env.local` variables during live demos.
 
-## 7. POS Demonstration (Preview Only)
-Navigate to the POS invoice page. Add services, add tips or products, and perform checkout. Explain that behind the scenes, checkout is preparing to be heavily protected through centralized atomicity so bad transactions never occur (which is a massive advantage compared to older standalone software). 
+## 5. Customer Questions that Require Honest Bounded Answers
 
-## 8. Receipt Printing Demonstration
-After checking out inside the POS, the POS engine directly provides a modal. Press the Print button. 
-
-## 9. Historical Reprint Demonstration
-Navigate to a Customer's internal historical records page (under "Invoices" tab) and hit the newly minted "Print" option located on historical invoice lists. 
-
-## 10. Reports Demonstration
-Review the Sales, Inventory, and Analytics tracking. 
-
-## 11. Mobile Demonstration
-Use Chrome DevTools to showcase 390px layouts or perform the walkthrough directly on an iPad for best experience. Focus on horizontal navigation safety and table overflow resilience.
-
-## 12. Known Limitations
-- The `checkout` flow has not yet been wired for Postgres execution. It operates correctly in preview local-memory mode only.
-- Historical data cannot be deeply modified after POS execution.
-- Complex analytics are purely in read-only aggregations based on fixed backend formulas.
-
-## 13. Actions Not Approved for Production
-Do NOT demo importing heavy external Excel formats via third party plugins. Do NOT demo uploading giant imagery, as bucket integrations might drop the payload without settings synchronized.
-Do NOT modify `.env.local` variables during live demos.
-
-## 14. Customer Questions that Require Honest Bounded Answers
 **Question:** Does it support multi-branch networks?
-**Answer:** Yes, the fundamental architecture maps a strict `center_id` to everything. However, cross-branch analytics are deferred for a future expansion phase as current operations isolate per-tenant strictly.
+
+**Answer:** No. v1.0 is intentionally single-customer and single-center. Multi-center or SaaS expansion is not part of the locked product scope.
 
 **Question:** Can staff members manipulate past invoices?
-**Answer:** The architecture enforces a zero-trust model meaning historical sales modification is severely blocked in our security layer, ensuring absolute financial integrity for the owner.
+
+**Answer:** No. The architecture is designed around strict authorization and financial integrity. Invoice mutation workflows are not part of v1.0.

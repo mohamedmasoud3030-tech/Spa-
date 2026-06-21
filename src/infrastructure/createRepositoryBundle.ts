@@ -1,18 +1,5 @@
 import { config } from "../config/env";
 import {
-  PreviewAuthAdapter,
-  PreviewCustomerAdapter,
-  PreviewEmployeeAdapter,
-  PreviewServiceAdapter,
-  PreviewAppointmentAdapter,
-  PreviewProductAdapter,
-  PreviewExpenseAdapter,
-  PreviewInvoiceAdapter,
-  PreviewSettingsAdapter,
-  PreviewDashboardAdapter,
-  PreviewReportAdapter
-} from "./preview/PreviewAdapters";
-import {
   AuthRepository,
   CustomerRepository,
   EmployeeRepository,
@@ -77,19 +64,5 @@ export function createRepositoryBundle(): RepositoryBundle {
     };
   }
 
-  // Fallback / default is preview mode
-  return {
-    authAdapter: new PreviewAuthAdapter(),
-    customerAdapter: new PreviewCustomerAdapter(),
-    employeeAdapter: new PreviewEmployeeAdapter(),
-    serviceAdapter: new PreviewServiceAdapter(),
-    appointmentAdapter: new PreviewAppointmentAdapter(),
-    productAdapter: new PreviewProductAdapter(),
-    expenseAdapter: new PreviewExpenseAdapter(),
-    invoiceAdapter: new PreviewInvoiceAdapter(),
-    settingsAdapter: new PreviewSettingsAdapter(),
-    dashboardAdapter: new PreviewDashboardAdapter(),
-    reportAdapter: new PreviewReportAdapter()
-  };
+  throw new InfrastructureError(`Unsupported backend mode: ${config.backend}`, "UNSUPPORTED_BACKEND");
 }
-

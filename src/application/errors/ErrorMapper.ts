@@ -6,8 +6,6 @@ export function mapErrorToMessage(error: any): string {
   switch (code) {
     case "AUTH_NOT_CONFIGURED":
       return "لم يتم إعداد المصادقة بعد. يرجى إعداد قاعدة البيانات أولاً.";
-    case "PREVIEW_READ_ONLY":
-      return "وضع المعاينة (Preview) يسمح بالقراءة فقط. لا يمكن حفظ التعديلات.";
     case "UNAUTHORIZED":
     case "UNAUTHENTICATED":
       return "يرجى تسجيل الدخول والصلاحية مطلوبة للقيام بهذا الإجراء.";

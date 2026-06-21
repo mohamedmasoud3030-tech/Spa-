@@ -52,7 +52,7 @@ export default function DashboardPage() {
       // In a real app we might show a toast here. In dashboard we just leave things null.
       if (err.code === "BACKEND_METHOD_UNSUPPORTED") {
          // show a gentle toast, but it's acceptable for dashboard to just render empty state when unsupported
-         // But per requirements, DO NOT fake success. We should show standard error.
+         // But per requirements, DO NOT simulate success. We should show standard error.
          showToast('error', t("Backend Required"), t("BACKEND_METHOD_UNSUPPORTED"));
       }
     } finally {

@@ -3,8 +3,6 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../auth";
 import { useTranslation } from "react-i18next";
 import { Lock, User } from "lucide-react";
-import { config } from "../config/env";
-import { clsx } from "clsx";
 import { useAppContext } from "../context/AppContext";
 
 export default function LoginPage() {
@@ -34,16 +32,6 @@ export default function LoginPage() {
       } else {
         setError(e.message || String(err) || t("Login failed. Check your details."));
       }
-    }
-  };
-
-  const handlePreview = async () => {
-    try {
-      if (!config.previewModeEnabled) return;
-      await authenticate("preview", "preview");
-      nav("/", { replace: true });
-    } catch (err) {
-      setError((err as { message?: string }).message || String(err));
     }
   };
 
@@ -102,21 +90,6 @@ export default function LoginPage() {
               {t("Sign In")}
             </button>
           </form>
-
-          {config.previewModeEnabled && (
-             <div className="mt-6 pt-6 border-t border-neutral-100 space-y-4">
-                <div className="bg-amber-50 text-amber-600 p-3 rounded-md text-sm text-center">
-                  {t("Preview mode active. You can browse the UI without a backend.")}
-                </div>
-                <button 
-                  onClick={handlePreview}
-                  type="button" 
-                  className="w-full py-2 bg-amber-600 text-white rounded-md font-medium hover:bg-amber-700 shadow-sm" 
-                >
-                  {t("Enter Preview Mode")}
-                </button>
-             </div>
-          )}
         </div>
       </div>
     </div>

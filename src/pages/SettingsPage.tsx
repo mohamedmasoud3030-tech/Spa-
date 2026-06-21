@@ -854,7 +854,7 @@ export default function SettingsPage() {
                     onClick={async () => {
                       showToast('error', 'Error', t("Running Full E2E Test... Check console and Activity Log."));
                       try {
-                        await Promise.reject(new Error("E2E Test disabled in preview mode."));
+                        await Promise.reject(new Error("E2E Test is not available in this build."));
                       } catch (err: any) { showToast('error', 'Error', ((err as Error).message || String(err))); }
                     }}
                     className="group flex flex-col items-start gap-4 rounded-3xl border border-border bg-muted/30 p-8 text-start transition-all hover:bg-indigo-500 hover:border-indigo-500 hover:scale-[1.02]"
@@ -871,7 +871,7 @@ export default function SettingsPage() {
                   <button
                     onClick={async () => {
                       try {
-                        await Promise.reject(new Error("DB Self-Test disabled in preview mode."));
+                        await Promise.reject(new Error("DB Self-Test is not available in this build."));
                       } catch (err: any) { showToast('error', 'Error', ((err as Error).message || String(err))); }
                     }}
                     className="group flex flex-col items-start gap-4 rounded-3xl border border-border bg-muted/30 p-8 text-start transition-all hover:bg-emerald-500 hover:border-emerald-500 hover:scale-[1.02]"

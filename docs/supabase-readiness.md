@@ -1,4 +1,7 @@
 # Pre-Supabase Integration Architecture & Readiness Blueprint
+
+> Historical note: This plan predates the locked v1.0 decision to remove Preview Mode. Current implementation instructions are in `docs/NEXT_IMPLEMENTATION_REMOVE_PREVIEW_MODE.md`; v1.0 must boot only through Supabase and fail hard on missing or invalid configuration.
+
 ## Date: June 4, 2026
 
 This document maps out the system architecture and provides a prescriptive plan for swapping the current in-memory Preview Infrastructure Adapters with fully integrated **Supabase Client Adapters** as part of a future deployment phase. 

@@ -223,7 +223,7 @@ export function mapAuthSession(session: SupabaseSession | null): SessionState {
     const roleStr = session.user.user_metadata?.role;
     let role: UserRole;
     
-    if (roleStr && Object.values(UserRole).includes(roleStr as UserRole) && roleStr !== UserRole.PREVIEW) {
+    if (roleStr && Object.values(UserRole).includes(roleStr as UserRole)) {
         role = roleStr as UserRole;
     } else {
         // We do not silently escalate or default to STAFF. If they don't have a configured mapped role, they are unauthorized to proceed.

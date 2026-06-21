@@ -1,5 +1,7 @@
 # Supabase Phase 2.11.1 - Implementation Readiness Review
 
+> Historical note: This review predates the locked v1.0 decision to remove Preview Mode. Current implementation instructions are in `docs/NEXT_IMPLEMENTATION_REMOVE_PREVIEW_MODE.md`.
+
 ## 1. Executive Readiness Verdict
 **READY FOR CONTROLLED INITIALIZATION** 
 

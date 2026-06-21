@@ -1,5 +1,7 @@
 # PHASE 2.11.2D-R — AUTH WIRING REVIEW, CONTRACT CONSOLIDATION & WRITE-PATH READINESS FREEZE
 
+> Historical note: This freeze note predates the locked v1.0 decision to remove Preview Mode. Current implementation instructions are in `docs/NEXT_IMPLEMENTATION_REMOVE_PREVIEW_MODE.md`.
+
 ## 1. Final Verdict
 **VERDICT: PASS**
 The authentication wiring successfully implements safe, lazy-loaded integrations with `supabase.auth`. Mappers are strongly bounded using explicitly narrowed types (`unknown` instead of `any`) and handle `null` safely. UI error states map perfectly to typed domain errors. The preview mode regression maintains pure isolation. Zero mutation paths (DML) or RPC endpoints have been introduced to the application or network boundary.

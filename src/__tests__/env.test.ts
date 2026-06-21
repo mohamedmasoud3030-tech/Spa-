@@ -1,13 +1,15 @@
 import { describe, it, expect } from "vitest";
-import { parseEnv, PREVIEW_CENTER_ID } from "../config/env";
+import { EnvironmentConfigurationError, parseEnv } from "../config/env";
 
 describe("Environment Configuration Tests", () => {
-    it("Preview mode uses deterministic mock center id", () => {
-        const env = parseEnv({
+    it("Preview mode is rejected", () => {
+        expect(() => parseEnv({
             VITE_DATA_BACKEND: "preview"
-        });
-        expect(env.centerId).toBe(PREVIEW_CENTER_ID);
-        expect(env.previewModeEnabled).toBe(true);
+        })).toThrowError(EnvironmentConfigurationError);
+    });
+
+    it("Missing backend mode is rejected", () => {
+        expect(() => parseEnv({})).toThrowError(EnvironmentConfigurationError);
     });
 
     it("Supabase mode rejects missing VITE_CENTER_ID", () => {
@@ -33,7 +35,7 @@ describe("Environment Configuration Tests", () => {
         }).toThrowError("MISSING_SINGLE_BRANCH_CENTER_ID");
     });
 
-    it("Preview mock center id is not used in Supabase mode", () => {
+    it("Supabase mode uses the configured center id", () => {
         const env = parseEnv({
             VITE_DATA_BACKEND: "supabase",
             VITE_SUPABASE_URL: "https://example.supabase.co",
@@ -41,8 +43,6 @@ describe("Environment Configuration Tests", () => {
             VITE_BRANCH_MODE: "single",
             VITE_CENTER_ID: "123e4567-e89b-12d3-a456-426614174000" // Valid UUID
         });
-        expect(env.centerId).not.toBe(PREVIEW_CENTER_ID);
         expect(env.centerId).toBe("123e4567-e89b-12d3-a456-426614174000");
-        expect(env.previewModeEnabled).toBe(false);
     });
 });
