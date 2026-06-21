@@ -75,3 +75,66 @@
 `Settings.update`, `uploadLogo`, `exportData`, `backup`, `restore` — all return `BACKEND_METHOD_UNSUPPORTED`. Deferred to v1.1.
 
 ---
+
+## DATABASE SCHEMA STATUS
+
+| File | Purpose | Status |
+|---|---|---|
+| `docs/SUPABASE_BASE_SCHEMA_BOOTSTRAP.sql` | v1.0 base tables + RLS | ✅ Final — **not yet applied to production** |
+| `docs/SUPABASE_PHASE_10B_CHECKOUT_ACTIVATION.sql` | invoices + invoice_items + process_checkout_v1 RPC | ✅ Final — **not yet applied to production** |
+| `docs/SUPABASE_STAGING_SEED_10A5.sql` | Staging seed data for QA | ✅ Ready |
+
+**Critical:** Neither SQL file has been applied to a real Supabase project yet. This is the primary blocker for v1.0.
+
+---
+
+## PHASE MODEL (locked)
+
+```
+v1.0  ──  Single-customer Supabase PWA
+          Real auth · Real CRUD · Live QA verified
+          Preview Mode: REMOVED ✅
+          Status: Code ready — awaiting DB + QA
+
+v1.1  ──  Financial layer + Performance
+          Checkout · Print · Reports · Settings mutations
+          Expense edit UI · Bundle code-split
+          Status: Code ready — awaiting v1.0 release
+
+v2.0  ──  Windows Desktop EXE
+          Tauri v2 + SQLite · Offline-first
+          Local auth · Local migrations · Backup/restore
+          Status: Documented only — do not implement yet
+```
+
+---
+
+## TECH DEBT (verified from source)
+
+| Item | Severity | Phase |
+|---|---|---|
+| `Expense.update` UI missing (contract exists) | Medium | v1.1 |
+| Single JS bundle 1,325 kB | Medium | v1.1 code-split |
+| `sendReminder` is a silent stub returning `ok: true` | Low | v1.1 — implement or remove |
+| `getActivityFeed` returns hardcoded `[]` | Low | v1.1 |
+| Several page-level form states typed as `any` | Low | v1.1 cleanup |
+
+---
+
+## IMMEDIATE NEXT ACTIONS
+
+| # | Action | Blocks |
+|---|---|---|
+| 1 | Create staging Supabase project | All live QA |
+| 2 | Apply `SUPABASE_BASE_SCHEMA_BOOTSTRAP.sql` | v1.0 core QA |
+| 3 | Configure `.env.local` with staging credentials | App boot |
+| 4 | Run `npm run preflight:supabase` | QA readiness |
+| 5 | Execute `SUPABASE_LIVE_QA_RUNBOOK.md` | v1.0 release gate |
+| 6 | Write `CUSTOMER_DEPLOYMENT_GUIDE.md` | Sales handoff |
+| 7 | Arabic RTL test on real Android + iOS device | v1.0 acceptance |
+| 8 | Sign off `MANUAL_PRE_SALE_ACCEPTANCE_CHECKLIST.md` | v1.0 release |
+| 9 | Apply `SUPABASE_PHASE_10B_CHECKOUT_ACTIVATION.sql` | v1.1 start |
+
+---
+
+*All facts verified from live repository clone. No content inferred from session summaries.*
