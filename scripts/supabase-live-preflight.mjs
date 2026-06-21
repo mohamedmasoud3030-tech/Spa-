@@ -4,6 +4,7 @@ import { resolve } from "node:path";
 const root = process.cwd();
 const envFiles = [".env.local", ".env"];
 const schemaPath = resolve(root, "docs/SUPABASE_BASE_SCHEMA_BOOTSTRAP.sql");
+const seedPath = resolve(root, "docs/SUPABASE_STAGING_SEED_10A5.sql");
 
 const requiredEnv = [
   "VITE_DATA_BACKEND",
@@ -132,6 +133,32 @@ if (!existsSync(schemaPath)) {
   for (const artifact of forbiddenCheckoutArtifacts) {
     if (schema.includes(artifact)) {
       fail(`bootstrap schema must not include checkout artifact: ${artifact}`);
+    }
+  }
+}
+
+if (!existsSync(seedPath)) {
+  fail("docs/SUPABASE_STAGING_SEED_10A5.sql is missing");
+} else {
+  pass("docs/SUPABASE_STAGING_SEED_10A5.sql exists");
+  const seed = readFileSync(seedPath, "utf8");
+
+  for (const requiredSeedFragment of [
+    "INSERT INTO public.centers",
+    "INSERT INTO public.profiles",
+    "INSERT INTO public.center_memberships",
+    'SELECT center_id AS "VITE_CENTER_ID"',
+  ]) {
+    if (!seed.includes(requiredSeedFragment)) {
+      fail(`staging seed missing required fragment: ${requiredSeedFragment}`);
+    } else {
+      pass(`staging seed includes ${requiredSeedFragment}`);
+    }
+  }
+
+  for (const artifact of forbiddenCheckoutArtifacts) {
+    if (seed.includes(artifact)) {
+      fail(`staging seed must not include checkout artifact: ${artifact}`);
     }
   }
 }
