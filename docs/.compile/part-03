@@ -1,0 +1,40 @@
+## CRITERION 8 — Arabic RTL Device-Tested
+
+**Status: ❌ Not tested on physical devices**
+
+| Check | Status |
+|---|---|
+| Arabic RTL layout on Android (Chrome) | ❌ Pending |
+| Arabic RTL layout on iOS (Safari) | ❌ Pending |
+| Arabic font rendering (no tofu/boxes) | ❌ Pending |
+| RTL direction in modals, drawers, forms | ❌ Pending |
+
+---
+
+## SALES-READY GATE (v1.0)
+
+All must be ✅ before first paying customer:
+
+**Technical**
+- [x] Preview Mode removed from source ✅
+- [ ] Supabase staging environment created and schema applied
+- [ ] Preflight passes (`npm run preflight:supabase`)
+- [ ] Full live browser QA passed (`SUPABASE_LIVE_QA_RUNBOOK.md`)
+- [ ] RLS cross-center isolation tested
+- [ ] `tsc --noEmit` clean ✅
+- [ ] `vitest run` 74/74 ✅
+- [ ] `npm run build` success ✅
+
+**Documentation**
+- [ ] `CUSTOMER_DEPLOYMENT_GUIDE.md` written and reviewed
+- [ ] `MANUAL_PRE_SALE_ACCEPTANCE_CHECKLIST.md` signed off
+- [ ] v1.0 feature scope disclosed in sales materials
+
+**Quality**
+- [ ] Arabic RTL tested on Android + iOS
+- [ ] Error states tested (network failure, bad auth, missing env)
+- [ ] No crashes observed during QA session
+
+---
+
+## V1.0 — WHAT CAN BE 
