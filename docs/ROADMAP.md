@@ -129,11 +129,18 @@
 - **Explicitly out of scope**: Real checkout processing, applying any remote SQL scripts.
 
 ## Phase 10A.5: Supabase Base Schema Bootstrap
-- **Goal**: Create the safe foundation of SQL tables and Row Level Security for live CRUD testing, explicitly excluding complex checkout logic. Enable the developer to seed the first `VITE_CENTER_ID`.
-- **Tasks**: Authored `docs/SUPABASE_BASE_SCHEMA_BOOTSTRAP.sql` mapping `centers`, `profiles`, `center_memberships`, and all standard business entities. Established safe user isolation RLS. Drafted admin seed instructions.
-- **Acceptance Criteria**: The SQL file is safely documented. The frontend requires no code changes.
-- **Verification Commands / Steps**: Application of SQL script against live Supabase project by the administrator. Retrieve the generated `VITE_CENTER_ID` into `.env`.
+- **Goal**: Create the safe foundation of SQL tables and Row Level Security for live CRUD testing, explicitly excluding complex checkout logic. Enable the developer to seed the first `VITE_CENTER_ID` and run real Live QA.
+- **Tasks**: Apply `docs/SUPABASE_BASE_SCHEMA_BOOTSTRAP.sql` to Supabase staging. Apply `docs/SUPABASE_STAGING_SEED_10A5.sql` for one center, one admin profile, one active `center_memberships` row, and one `center_settings` row. Capture the returned `VITE_CENTER_ID` into `.env.local`, run `npm run preflight:supabase`, and execute the browser QA checklist from `docs/SUPABASE_LIVE_QA_RUNBOOK.md`.
+- **Acceptance Criteria**: The staging schema applies without checkout artifacts. The seeded admin can log in and pass all non-checkout CRUD QA. POS checkout, invoice print, financial reports, and unsupported settings mutations remain visibly blocked.
+- **Verification Commands / Steps**: Supabase SQL Editor execution of `docs/SUPABASE_BASE_SCHEMA_BOOTSTRAP.sql`, then `docs/SUPABASE_STAGING_SEED_10A5.sql`; `npm run preflight:supabase`; live browser QA checklist.
 - **Explicitly out of scope**: Processing checkout RPC logic or finalizing `invoices`/`payments` tables. Does not alter frontend code.
+
+## Phase 10A.6: Preview Source Removal and Release Evidence
+- **Goal**: Remove remaining Preview Mode source paths before any financial backend activation so v1.0 release evidence comes only from real Supabase staging.
+- **Tasks**: Execute `docs/NEXT_IMPLEMENTATION_REMOVE_PREVIEW_MODE.md`, replace preview-specific tests with strict configuration-error coverage, and re-run Phase 10A.5 live QA against the captured `VITE_CENTER_ID`.
+- **Acceptance Criteria**: `VITE_DATA_BACKEND=preview` is rejected, preview source code is deleted, tests/build pass, and the live staging QA evidence remains valid.
+- **Verification Commands / Steps**: `npx tsc --noEmit && npx vitest run && npm run build`, followed by the Phase 10A.5 runbook checklist.
+- **Explicitly out of scope**: Checkout RPCs, invoice/payment tables, production environment changes, and multi-center behavior.
 
 ## Phase 10B: Checkout RPC & Invoice-payment Backend Activation
 - **Goal**: Apply the backend Supabase schema and Remote Procedure Calls (RPC) to unlock full financial functionality.

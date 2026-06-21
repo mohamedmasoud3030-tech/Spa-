@@ -217,35 +217,7 @@ ON public.expenses FOR ALL USING (center_id = ANY(app_private.user_center_ids())
 -- =====================================================================
 -- SEED / ADMIN SETUP (MANUAL INSTRUCTIONS)
 -- =====================================================================
--- Run the following script manually in the Supabase SQL Editor to seed the center 
--- and retrieve the VITE_CENTER_ID.
-/*
-
--- 1. Insert the main center
-INSERT INTO public.centers (id, name) 
-VALUES (gen_random_uuid(), 'Main Center')
-RETURNING id AS "VITE_CENTER_ID";
-
--- Note the resulting UUID. You will put this in your .env as VITE_CENTER_ID.
-
--- 2. Link your existing Supabase Auth User
--- Replace 'YOUR-AUTH-UID-HERE' with the UUID from the Authentication Users list
--- Replace 'THE-CENTER-ID-HERE' with the generated VITE_CENTER_ID
-/*
-INSERT INTO public.profiles (id, full_name) 
-VALUES ('YOUR-AUTH-UID-HERE', 'Admin User');
-
-INSERT INTO public.center_memberships (center_id, profile_id, role, is_active)
-VALUES ('THE-CENTER-ID-HERE', 'YOUR-AUTH-UID-HERE', 'admin', true);
-*/
-
--- =====================================================================
--- VERIFICATION SQL
--- =====================================================================
-/*
--- Verify that the center exists
-SELECT * FROM public.centers;
-
--- Verify that the active user profile exists and membership is valid
-SELECT * FROM public.center_memberships;
-*/
+-- After this schema succeeds, apply docs/SUPABASE_STAGING_SEED_10A5.sql
+-- in the same staging project. The seed script creates one center,
+-- one admin profile, one active center_memberships row, one center_settings
+-- row, and returns the generated VITE_CENTER_ID for .env.local.
