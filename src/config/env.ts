@@ -5,7 +5,7 @@ export class EnvironmentConfigurationError extends Error {
   }
 }
 
-export type BackendMode = "preview" | "supabase";
+export type BackendMode = "supabase";
 export type BranchMode = "single" | "multi";
 
 function validateUrl(url: string | undefined): boolean {
@@ -24,17 +24,15 @@ function validateUUID(uuid: string | undefined): boolean {
   return uuidRegex.test(uuid);
 }
 
-export const PREVIEW_CENTER_ID = "00000000-0000-4000-8000-000000000001";
-
 export function parseEnv(customEnv?: Record<string, string | undefined>) {
   const getEnv = (key: string) => customEnv ? customEnv[key] : import.meta.env[key];
 
-  const backendRaw = (getEnv("VITE_DATA_BACKEND")?.trim().toLowerCase()) || "preview";
-  if (backendRaw !== "preview" && backendRaw !== "supabase") {
+  const backendRaw = getEnv("VITE_DATA_BACKEND")?.trim().toLowerCase();
+  if (backendRaw !== "supabase") {
     throw new EnvironmentConfigurationError("INVALID_SUPABASE_CONFIGURATION");
   }
 
-  const backend: BackendMode = backendRaw as BackendMode;
+  const backend: BackendMode = "supabase";
   const url = getEnv("VITE_SUPABASE_URL")?.trim() || undefined;
   const key = getEnv("VITE_SUPABASE_PUBLISHABLE_KEY")?.trim() || undefined;
   
@@ -47,9 +45,7 @@ export function parseEnv(customEnv?: Record<string, string | undefined>) {
 
   let centerId: string | undefined;
 
-  if (backend === "preview") {
-    centerId = PREVIEW_CENTER_ID;
-  } else if (backend === "supabase" && branchMode === "single") {
+  if (branchMode === "single") {
     if (!rawCenterId || !validateUUID(rawCenterId)) {
       if (!customEnv && import.meta.env.MODE === "test") {
         // Skip throw for vitest hoisting side-effects
@@ -58,8 +54,7 @@ export function parseEnv(customEnv?: Record<string, string | undefined>) {
       }
     }
     centerId = rawCenterId;
-  } else if (backend === "supabase" && branchMode === "multi") {
-    // Let's support multi later or throw specific explicitly
+  } else if (branchMode === "multi") {
     throw new EnvironmentConfigurationError(`UNSUPPORTED_BRANCH_CONFIGURATION: multi-branch not yet implemented`);
   } else {
     throw new EnvironmentConfigurationError(`UNSUPPORTED_BRANCH_CONFIGURATION: ${backend} with ${branchMode}`);
@@ -70,17 +65,15 @@ export function parseEnv(customEnv?: Record<string, string | undefined>) {
     throw new EnvironmentConfigurationError("INVALID_SUPABASE_CONFIGURATION");
   }
 
-  if (backend === "supabase") {
-    const missing: string[] = [];
-    if (!url || !validateUrl(url)) missing.push("VITE_SUPABASE_URL");
-    if (!key) missing.push("VITE_SUPABASE_PUBLISHABLE_KEY");
-    
-    if (missing.length > 0) {
-      if (!customEnv && import.meta.env.MODE === "test") {
-        // Skip
-      } else {
-        throw new EnvironmentConfigurationError(`INVALID_SUPABASE_CONFIGURATION: Missing or invalid ${missing.join(", ")}`);
-      }
+  const missing: string[] = [];
+  if (!url || !validateUrl(url)) missing.push("VITE_SUPABASE_URL");
+  if (!key) missing.push("VITE_SUPABASE_PUBLISHABLE_KEY");
+
+  if (missing.length > 0) {
+    if (!customEnv && import.meta.env.MODE === "test") {
+      // Skip
+    } else {
+      throw new EnvironmentConfigurationError(`INVALID_SUPABASE_CONFIGURATION: Missing or invalid ${missing.join(", ")}`);
     }
   }
 
@@ -89,9 +82,7 @@ export function parseEnv(customEnv?: Record<string, string | undefined>) {
     supabaseUrl: url,
     supabasePublishableKey: key,
     branchMode,
-    centerId,
-    // Provide a backwards compatible flag to avoid rewriting everywhere at once
-    previewModeEnabled: backend === "preview"
+    centerId
   };
 }
 
@@ -102,21 +93,12 @@ try {
 } catch (error: any) {
   _configError = error;
   
-  // Attempt to read the raw backend from environment to preserve intentional 'supabase' mode 
-  let rawBackend = "preview";
-  try {
-    rawBackend = import.meta.env.VITE_DATA_BACKEND?.trim().toLowerCase() || "preview";
-  } catch (e) {
-    // Ignore environment read error
-  }
-
   _config = {
-    backend: rawBackend === "supabase" ? "supabase" : "preview",
+    backend: "supabase",
     supabaseUrl: undefined,
     supabasePublishableKey: undefined,
     branchMode: "single",
-    centerId: undefined,
-    previewModeEnabled: rawBackend !== "supabase"
+    centerId: undefined
   };
 }
 
@@ -127,4 +109,3 @@ export function validateEnvironment(cfg: ReturnType<typeof parseEnv>) {
     throw _configError;
   }
 }
-

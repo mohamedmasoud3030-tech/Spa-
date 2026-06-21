@@ -33,11 +33,8 @@ import { clsx } from "clsx";
 
 import { SalesReportRow, AppointmentReportRow, InventoryReportRow } from "../application/dto";
 
-import { useAppContext } from "../context/AppContext";
-
 export default function ReportsPage() {
   const { t, i18n } = useTranslation();
-  const { sessionState } = useAppContext();
   const { showToast } = useToast();
   const [tab, setTab] = useState<"sales" | "appointments" | "inventory">("sales");
   const [dateRange, setDateRange] = useState({
@@ -112,18 +109,8 @@ export default function ReportsPage() {
     const totalSales = salesData.reduce((a, b) => a + b.totalAmount, 0);
     const avgSale = totalSales / (salesData.length || 1);
     
-    const isPreview = sessionState.status === "preview";
-
     return (
       <div className="space-y-10">
-        {isPreview && (
-          <div className="bg-amber-500/10 text-amber-600 border border-amber-500/20 px-4 py-3 rounded-[1rem] flex items-center gap-3">
-             <AlertCircle className="h-5 w-5 shrink-0" />
-             <div className="flex-1 text-sm font-bold uppercase tracking-wider">
-               {t("Preview / Demo-Only Data")}
-             </div>
-          </div>
-        )}
         <div className="grid gap-8 md:grid-cols-3">
           <motion.div 
             initial={{ opacity: 0, y: 30 }}

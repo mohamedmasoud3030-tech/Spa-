@@ -1,7 +1,6 @@
 import { Navigate, Outlet, useLocation } from "react-router-dom";
 import { useAppContext } from "./context/AppContext";
-import { can, SessionState } from "./domain/entities/Session";
-import { config } from "./config/env";
+import { can } from "./domain/entities/Session";
 
 export function RequireAuth() {
   const { isInitialized, sessionState, user } = useAppContext();
@@ -20,20 +19,7 @@ export function RequireAuth() {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  const isPreview = sessionState.status === "preview";
-
-  return (
-      <>
-        {isPreview && (
-          <div className="bg-amber-100 text-amber-800 text-sm p-2 text-center fixed w-full top-0 z-50">
-              ⚠️ وضع المعاينة (Preview Mode) - غير متصل بقاعدة بيانات. يمكنك تصفح الواجهات فقط ولن يتم الحفظ.
-          </div>
-        )}
-        <div className={isPreview ? "mt-8" : ""}>
-           <Outlet />
-        </div>
-      </>
-  );
+  return <Outlet />;
 }
 
 export function RequireAdmin() {
@@ -52,23 +38,9 @@ export function RequireAdmin() {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  // Check admin permission (preview always passes to allow viewing UI)
   if (!can(sessionState, "admin.access")) {
     return <Navigate to="/" replace />;
   }
 
-  const isPreview = sessionState.status === "preview";
-
-  return (
-      <>
-        {isPreview && (
-          <div className="bg-amber-100 text-amber-800 text-sm p-2 text-center fixed w-full top-0 z-50">
-              ⚠️ وضع المعاينة (Preview Mode) - غير متصل بقاعدة بيانات. يمكنك تصفح الواجهات فقط ولن يتم الحفظ.
-          </div>
-        )}
-        <div className={isPreview ? "mt-8" : ""}>
-           <Outlet />
-        </div>
-      </>
-  );
+  return <Outlet />;
 }

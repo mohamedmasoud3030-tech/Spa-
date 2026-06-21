@@ -1,5 +1,7 @@
 # Phase 2.11.2E-R+ Multi-Track Pre-Sale Certification
 
+> Historical note: This certification predates the locked v1.0 decision to remove Preview Mode. Current implementation instructions are in `docs/NEXT_IMPLEMENTATION_REMOVE_PREVIEW_MODE.md`.
+
 ## 1. Final Phase Verdict
 **CONTROLLED PILOT READY BUT WITH BLOCKERS**
 

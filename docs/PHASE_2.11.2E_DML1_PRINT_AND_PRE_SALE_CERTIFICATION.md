@@ -1,5 +1,7 @@
 # Phase 2.11.2E: DML Increment 1 & Pre-Sale Certification
 
+> Historical note: This certification predates the locked v1.0 decision to remove Preview Mode. Current implementation instructions are in `docs/NEXT_IMPLEMENTATION_REMOVE_PREVIEW_MODE.md`; Preview Mode must not be used for sales-demo readiness.
+
 ## 1. DML Increment Results
 The first DML increment is complete, focusing exclusively on the `Customer` and `Service` adapters:
 *   **Customer DML:** Implemented `create`, `update`, and `delete` within `SupabaseCustomerAdapter`. Mappings have been established from `Partial<Customer>` properties to standard database columns (`loyaltyPoints` -> `loyalty_points`, etc.).

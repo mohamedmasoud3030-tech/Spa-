@@ -1,5 +1,7 @@
 # PHASE 2.11.2D — SUPABASE AUTHENTICATION INFRASTRUCTURE WIRING & PREVIEW-SAFE CERTIFICATION
 
+> Historical note: This certification predates the locked v1.0 decision to remove Preview Mode. Current implementation instructions are in `docs/NEXT_IMPLEMENTATION_REMOVE_PREVIEW_MODE.md`; Preview Mode must not be treated as released behavior.
+
 ## 1. Final Verdict
 **VERDICT: PASS WITH BOUNDED GAPS**
 The Supabase authentication wiring has been successfully implemented using explicit, safe mappers. Lazy client initialization is preserved exactly, and Preview mode regression tests confirm zero remote initialization during local testing. DML/RPC/Storage methods remain strictly isolated from remote execution as required.

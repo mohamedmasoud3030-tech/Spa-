@@ -35,8 +35,7 @@ vi.mock("../config/env", () => {
             branchMode: "single",
             centerId: "test-center-123",
             supabaseUrl: "https://mock.supabase.co",
-            supabasePublishableKey: "mock-key",
-            previewModeEnabled: false
+            supabasePublishableKey: "mock-key"
         },
         EnvironmentConfigurationError: class extends Error {}
     }
@@ -61,7 +60,7 @@ describe("Supabase Repository Tests", () => {
         });
 
         it("mapAuthSession fails closed if role is missing in user_metadata", () => {
-            const fakeSession = {
+            const mockSession = {
                 user: {
                     id: "u123",
                     email: "test@example.com",
@@ -69,7 +68,7 @@ describe("Supabase Repository Tests", () => {
                 }
             } as any;
             
-            const state = mapAuthSession(fakeSession);
+            const state = mapAuthSession(mockSession);
             expect(state.status).toBe("error");
             if (state.status === "error") {
                 expect(state.error.message).toBe("MISSING_OR_INVALID_ROLE");
@@ -77,7 +76,7 @@ describe("Supabase Repository Tests", () => {
         });
 
         it("mapAuthSession fails closed if role is invalid in user_metadata", () => {
-            const fakeSession = {
+            const mockSession = {
                 user: {
                     id: "u123",
                     email: "test@example.com",
@@ -85,7 +84,7 @@ describe("Supabase Repository Tests", () => {
                 }
             } as any;
             
-            const state = mapAuthSession(fakeSession);
+            const state = mapAuthSession(mockSession);
             expect(state.status).toBe("error");
             if (state.status === "error") {
                 expect(state.error.message).toBe("MISSING_OR_INVALID_ROLE");
@@ -93,19 +92,19 @@ describe("Supabase Repository Tests", () => {
         });
 
         it("mapAuthSession falls back to ADMIN if email contains admin is NO LONGER SUPPORTED", () => {
-             const fakeSession = {
+             const mockSession = {
                 user: {
                     id: "u123",
                     email: "superadmin@example.com",
                     user_metadata: {}
                 }
             } as any;
-            const state = mapAuthSession(fakeSession);
+            const state = mapAuthSession(mockSession);
             expect(state.status).toBe("error");
         });
 
         it("mapAuthSession honors structural user_metadata role and name", () => {
-            const fakeSession = {
+            const mockSession = {
                 user: {
                     id: "u123",
                     email: "manager@example.com",
@@ -115,7 +114,7 @@ describe("Supabase Repository Tests", () => {
                     }
                 }
             } as any;
-            const state = mapAuthSession(fakeSession);
+            const state = mapAuthSession(mockSession);
             if (state.status === "authenticated") {
                 expect(state.session.user.role).toBe(UserRole.MANAGER);
                 expect(state.session.user.name).toBe("Big Boss");

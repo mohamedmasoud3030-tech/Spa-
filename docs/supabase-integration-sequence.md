@@ -1,5 +1,7 @@
 # Supabase Integration Sequence & Adapter Migration Map
 
+> Historical note: This document predates the locked v1.0 decision to remove Preview Mode. Current implementation instructions are in `docs/NEXT_IMPLEMENTATION_REMOVE_PREVIEW_MODE.md`; `VITE_DATA_BACKEND=preview`, Preview adapters, and `checkPreviewWrite` must be removed in the next implementation PR.
+
 This document tracks the phased progression from local-memory Preview Providers to remote, highly-available Supabase Service adapters. The `CompositionRoot` will swap dependency instances safely.
 
 ## Migration Principles

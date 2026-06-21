@@ -8,8 +8,8 @@
 4. Invoice print `getForPrint` unsupported.
 5. Settings update/logo/backup/restore unsupported.
 6. Customer history unsupported.
-7. Expense `update` missing.
-8. Preview uses empty mock data and does not prove production behavior.
+7. Expense edit UI is deferred to v1.1; the `Expense.update` port/adapter contract already exists.
+8. Preview Mode legacy source code must be removed before v1.0 release.
 
 ## Phase 0: Baseline documentation completion
 - **Goal**: Lock in factual engineering states, architectures, and boundaries to act as a source of truth for further iteration.
@@ -24,7 +24,7 @@
 - **Files Involved**: `src/ui/layout/*.tsx`, `src/App.tsx`, `src/pages/*.tsx`
 - **Exact Tasks**: Solidify the desktop navigation hierarchy and generic page boundaries. Establish layout shells. Add "Backend Required" or "WIP" badges where functionality relies on unimplemented Supabase methods to prevent a false sense of module completion.
 - **Acceptance Criteria**: Desktop layout is robust, responsive primarily for desktop usage, routes switch cleanly, and unsupported features correctly flag themselves natively.
-- **Verification Commands / Steps**: Manual preview in desktop resolution.
+- **Verification Commands / Steps**: Manual browser review against the real configured Supabase backend.
 - **Explicitly out of scope**: Mobile-specific responsive adjustments (these are deferred).
 
 ## Phase 2: Runtime/config/auth safety. [COMPLETED]
@@ -55,21 +55,21 @@
 - **Goal**: Resolve crucial transaction-bound operations seamlessly joining billing to entity utilization.
 - **Files Involved**: `src/pages/PosInvoicesPage.tsx`, `src/pages/ServicesPage.tsx`, `src/infrastructure/supabase/repositories.ts`
 - **Exact Tasks**: 
-  - **Pre-Phase 5A**: Fixed initial UX environment crashes, allowing Preview Mode access without blocking on missing Supabase configuration inside AI Studio.
+  - **Pre-Phase 5A**: Fixed initial UX environment crashes. This historical Preview Mode bypass is superseded by the locked decision that missing Supabase configuration must block.
   - **Phase 5A**: Verified Services CRUD flow mapping correctly (`categoryId`, `durationMinutes`). Validated `PosInvoicesPage` checkout safety so unsupported checkouts fail safely without generating pseudo data.
   - **Phase 5B-1**: Established checkout design and transaction boundaries. Confirmed implementation is BLOCKED pending remote schema validation and RPC execution for atomicity (`process_checkout_v1`). Safely maintained `BACKEND_METHOD_UNSUPPORTED` constraint.
   - **Phase 5B-2**: Completed code-readiness. Stabilized `CheckoutPayload` mapping and POS frontend validations. `SupabaseInvoiceAdapter` wired securely to proxy the unimplemented `process_checkout_v1` RPC—falling back cleanly to `BACKEND_METHOD_UNSUPPORTED` without crashing. Created `docs/SUPABASE_SETUP_CHECKOUT.md` and `docs/PHASE_5B_CHECKOUT_SQL_DRAFT.md` manuals. (Code is complete; remote DB unapplied).
   - **Phase 5B-3**: (Pending) Database Administrator applies the schema migrations and RPC. No more application code required.
 - **Acceptance Criteria**: Receipts generate smoothly handling complex line-item math. (Currently safely blocked awaiting Supabase schema operations/migrations).
-- **Verification Commands / Steps**: `workflows.test.ts` integration validates preview guards. Live verification pending checkout implementation logic.
+- **Verification Commands / Steps**: Integration coverage must validate hard error paths for missing or invalid backend configuration. Live verification pending checkout implementation logic.
 - **Explicitly out of scope**: External POS hardware integration (e.g. physical receipt printers/EFTPOS). Implementing fake checkouts.
 
 ## Phase 6: Inventory and expenses correctness. [CODE COMPLETE - LIVE QA PENDING]
 - **Goal**: Streamline operational accounting, establishing boundaries for product restocking logic vs usage deduction.
 - **Files Involved**: `src/pages/InventoryPage.tsx`, `src/pages/ExpensesPage.tsx`
-- **Exact Tasks**: Connected UI validation to missing backend parameters. Clarified stock movement rules: simple update() overrides. Validated Expense logic (create, list, delete) with safe constraints for negative amounts. Formally marked `Expense.update` mathematically as `BACKEND_METHOD_UNSUPPORTED` because append-only tracking satisfies constraints and there's no UI for it.
+- **Exact Tasks**: Connected UI validation to missing backend parameters. Clarified stock movement rules: simple update() overrides. Validated Expense logic (create, list, delete) with safe constraints for negative amounts. Confirmed `Expense.update` exists in the domain port and Supabase adapter contract while the edit UI remains v1.1 work.
 - **Acceptance Criteria**: Expense and product creation behaves safely.
-- **Verification Commands / Steps**: `vitest run`, validation tests against PreviewMode interceptors.
+- **Verification Commands / Steps**: `vitest run`, with Preview Mode tests replaced by invalid-configuration error-path tests in the next implementation PR.
 - **Explicitly out of scope**: Dynamic stock purchasing notifications. Fake success mechanisms.
 
 ## Phase 7: Dashboard and reports backed by real Supabase data. [CODE COMPLETE - LIVE QA PENDING]
@@ -107,16 +107,23 @@
 ## Phase 9C: Final Release QA, i18n deep dive, and frontend readiness polish [CODE COMPLETE]
 - **Goal**: Ensure comprehensive Arabic/English string mapping, robust RTL mobile display behavior, and honest backend gatekeeping prior to production database application.
 - **Files Involved**: `src/i18n.ts`, `docs/CURRENT_APP_AUDIT.md`, `src/pages/*.tsx`.
-- **Exact Tasks**: Completed exhaustive string audits removing hardcoded fragments from forms/dialogs, updated demo/preview financial analytics alerts mitigating fake backend success states, confirmed mobile layout spacing constraints, compiled testing.
+- **Exact Tasks**: Completed exhaustive string audits removing hardcoded fragments from forms/dialogs, updated financial analytics alerts mitigating fake backend success states, confirmed mobile layout spacing constraints, compiled testing.
 - **Acceptance Criteria**: `tsc`, `vitest`, and `npm run build` execute flawlessly. UI states accurately warn the user if a backend method is missing schema rather than crashing. 
 - **Verification Commands / Steps**: `npx tsc --noEmit && npx vitest run --passWithNoTests && npm run build`.
 - **Explicitly out of scope**: Real checkout processing, invoice print layouts, applying any remote SQL scripts.
 
 ## Upcoming Backend Activation (Post-Frontend)
 
+## Phase 9D: Remove Preview Mode From Source [NEXT IMPLEMENTATION PR]
+- **Goal**: Delete Preview Mode from source code and enforce Supabase as the only valid v1.0 backend.
+- **Tasks**: Follow `docs/NEXT_IMPLEMENTATION_REMOVE_PREVIEW_MODE.md`.
+- **Acceptance Criteria**: `src/infrastructure/preview/` is deleted, `UserRole.PREVIEW` is gone, `VITE_DATA_BACKEND=preview` and missing `.env` paths produce `EnvironmentConfigurationError`, the Preview button/banner are gone, and all preview-specific tests are rewritten around the hard error path.
+- **Verification Commands / Steps**: `npx tsc --noEmit && npx vitest run && npm run build`.
+- **Explicitly out of scope**: Remote Supabase schema changes, checkout RPC implementation, expense edit UI, Desktop EXE implementation, and production environment variable changes.
+
 ## Phase 10A: Supabase Live Activation Readiness and Non-checkout Live QA
 - **Goal**: Formally prepare the application to run against a real Supabase backend and define a clear QA path, enforcing environment variable validation, documenting active and pending schema, and solidifying frontend separation of concerns from database operations.
-- **Tasks**: Added detailed environment checking documentation to `CURRENT_APP_AUDIT.md`, updated `.env.example`, documented required active schemas (customers, appointments, services, products, expenses, employees), and fully restricted invoice checkout/RPC states.
+- **Tasks**: Added detailed environment checking documentation to `CURRENT_APP_AUDIT.md`, updated `.env.example`, documented required active schemas (customers, appointments, services, products, expenses, employees), added `docs/SUPABASE_LIVE_QA_RUNBOOK.md`, added `npm run preflight:supabase`, and fully restricted invoice checkout/RPC states.
 - **Acceptance Criteria**: Live QA checklists are established and confirmed. App is documented/prepared to run in Supabase mode (reporting safe failures for unimplemented backend tables/RPCs without triggering fake transactions), but live browser QA remains pending.
 - **Verification Commands / Steps**: `npx tsc --noEmit && npx vitest run --passWithNoTests && npm run build`.
 - **Explicitly out of scope**: Real checkout processing, applying any remote SQL scripts.

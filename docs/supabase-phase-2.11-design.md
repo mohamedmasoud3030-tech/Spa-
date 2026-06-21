@@ -1,5 +1,7 @@
 # Supabase Architecture & Migration Blueprint - Phase 2.11
 
+> Historical note: This design predates the locked v1.0 decision to remove Preview Mode. Current implementation instructions are in `docs/NEXT_IMPLEMENTATION_REMOVE_PREVIEW_MODE.md`; `UserRole.PREVIEW`, Preview adapters, and `PREVIEW_READ_ONLY` are legacy concepts awaiting source removal.
+
 ## Part 1 — Current Architecture Inventory
 
 ### Domain Entities & Sessions

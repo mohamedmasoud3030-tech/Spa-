@@ -391,17 +391,3 @@ export function DateTime({ value }: { value: string }) {
     </span>
   );
 }
-
-// PreviewReadOnlyBanner Component
-export function PreviewReadOnlyBanner() {
-  const { t } = useTranslation();
-  return (
-    <div className="bg-amber-500/10 border border-amber-500/20 text-amber-700 dark:text-amber-300 rounded-2xl p-4 flex gap-3 text-xs mb-8">
-      <AlertCircle className="h-5 w-5 shrink-0" />
-      <div>
-        <p className="font-bold uppercase tracking-widest text-[9px] mb-1">{t("Preview Read-Only Mode")}</p>
-        <p className="opacity-90">{t("You are viewing the system in live preview. Changes are not persistent.")}</p>
-      </div>
-    </div>
-  );
-}

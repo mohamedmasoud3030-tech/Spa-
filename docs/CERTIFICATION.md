@@ -1,5 +1,7 @@
 # PHASE 2.11.2C — LOCAL SUPABASE READ-PATH CERTIFICATION & MOCKED CONTRACT HARDENING
 
+> Historical note: This certification predates the locked v1.0 decision to remove Preview Mode. Current implementation instructions are in `docs/NEXT_IMPLEMENTATION_REMOVE_PREVIEW_MODE.md`; Preview Mode must not be treated as released behavior.
+
 ## 1. Certification Verdict
 **VERDICT: PASS WITH BOUNDED GAPS**
 The Supabase read-only adapters are correctly isolated, fail closed with bounded typed errors on unsupported methods (Writes, Auth, Aggregates), and lazily initialize the `SupabaseClient`. Static scans confirm zero credentials, no UI leakage of backend config details, and no RPC/DML (`insert`, `delete`, `update`) execution logic.

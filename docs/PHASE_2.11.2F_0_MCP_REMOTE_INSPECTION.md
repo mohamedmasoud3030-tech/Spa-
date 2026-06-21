@@ -1,5 +1,7 @@
 # Phase 2.11.2F.0: MCP & Remote Inspection
 
+> Historical note: This inspection predates the locked v1.0 decision to remove Preview Mode. Current implementation instructions are in `docs/NEXT_IMPLEMENTATION_REMOVE_PREVIEW_MODE.md`; the application must not "exit Preview Mode" because Preview Mode is removed.
+
 ## 1. MCP Authentication Status
 **BLOCKED**
 The Gemini native MCP tools and CLI are structurally inaccessible within this restricted AI workspace sandbox context. Direct, interactive OAuth-based command-line authentication flows using `gemini mcp add` cannot be initiated from within the active container constraints.
