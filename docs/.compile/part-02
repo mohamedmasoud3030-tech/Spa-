@@ -1,0 +1,64 @@
+## CRITERION 4 — Blocked Features Disclosed Before Sale
+
+For v1.0, the following features are intentionally incomplete. The buyer must know before purchase.
+
+| Feature | v1.0 Status | Disclosure required |
+|---|---|---|
+| POS Checkout / Billing | Not functional | Yes |
+| Invoice printing | Not functional | Yes |
+| Financial dashboard (P&L, revenue) | Not functional | Yes |
+| Sales reports | Not functional | Yes |
+| Customer visit history | Not functional | Yes |
+| Settings mutations (name, logo, backup) | Not functional | Yes |
+| Expense editing | Not functional | Yes |
+
+The UI shows "Backend Required" warnings for these. That is necessary but not sufficient — the sales conversation must set expectations before evaluation.
+
+---
+
+## CRITERION 5 — Data Isolation Verified
+
+**Status: ❌ Pending live QA**
+
+RLS policies are defined in schema but not yet tested against a live Supabase instance.
+
+| Check | Status |
+|---|---|
+| RLS policies exist in `SUPABASE_BASE_SCHEMA_BOOTSTRAP.sql` | ✅ |
+| `VITE_CENTER_ID` mismatch → `UNAUTHORIZED_CENTER_MEMBERSHIP` error | ✅ Implemented in `AppContext.tsx` |
+| User from Center A cannot read Center B data (live test) | ❌ Not tested |
+
+For v1.0 (single-center, single-customer), cross-tenant isolation is still a production safety requirement — not just a SaaS concern.
+
+---
+
+## CRITERION 6 — Backup & Recovery Path Defined
+
+**v1.0 (Supabase-hosted):**
+- Supabase Pro plan provides automated daily backups
+- Manual export: Settings → Export Data (`BACKEND_METHOD_UNSUPPORTED` in v1.0 — ships in v1.1)
+- Customer deployment guide must document: "Your data is stored in Supabase and backed up daily"
+
+**v2.0 (Desktop EXE — future):**
+- Backup = copy of local SQLite `.db` file
+- Restore = replace `.db` file from backup
+- Both built into the application
+
+---
+
+## CRITERION 7 — Deployment Path Documented
+
+**Status: ❌ `docs/CUSTOMER_DEPLOYMENT_GUIDE.md` not yet written**
+
+Required content:
+1. Create a Supabase project
+2. Apply `SUPABASE_BASE_SCHEMA_BOOTSTRAP.sql`
+3. Create first admin user
+4. Create center row + membership
+5. Deploy the web app (Vercel or self-hosted)
+6. Set environment variables
+7. First login walkthrough
+8. How to add staff users
+
+---
+
