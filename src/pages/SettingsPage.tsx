@@ -3,7 +3,7 @@ import {
   ImagePlus, Save, Plus, Trash2, Pencil, Download, Upload, 
   AlertTriangle, BarChart, Building2, Users, Database, 
   Terminal, ShieldCheck, Globe, Phone, MapPin, Hash, 
-  Coins, CheckCircle2, XCircle, ChevronRight, Sparkles
+  Coins, CheckCircle2, XCircle, ChevronRight, Sparkles, Bell
 } from "lucide-react";
 import { useCases } from "../app/composition/useCases";
 import { unwrap, formatError } from "../shared/hooks/useApplication";
@@ -38,7 +38,7 @@ export default function SettingsPage() {
   const { showToast } = useToast();
   const { confirm } = useConfirm();
   const { t } = useTranslation();
-  const [tab, setTab] = useState<"center" | "users" | "backup" | "devtools">("center");
+  const [tab, setTab] = useState<"center" | "users" | "backup" | "notifications" | "devtools">("center");
   const [autoBackup, setAutoBackup] = useState(false);
   const [backupInterval, setBackupInterval] = useState(30);
 
