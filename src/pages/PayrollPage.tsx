@@ -14,6 +14,14 @@ interface PayrollEntry {
   netSalary: number;
   paymentStatus: 'pending' | 'paid' | 'partial';
   paymentDate?: Date;
+  // Attendance Integration
+  workHours: number;
+  attendancePercentage: number;
+  lateDeduction: number;
+  absenceDeduction: number;
+  // Advances Integration
+  advancesDeduction: number;
+  advancesRemaining: number;
 }
 
 interface PayrollMonth {
@@ -32,7 +40,7 @@ const PayrollPage: React.FC = () => {
   const [filterStatus, setFilterStatus] = useState<'all' | 'pending' | 'paid'>('all');
   const [showDetails, setShowDetails] = useState<string | null>(null);
 
-  // Mock payroll data
+  // Mock payroll data with Attendance and Advances integration
   const mockPayrollData: PayrollEntry[] = [
     {
       employeeId: 'emp_1',
@@ -46,6 +54,14 @@ const PayrollPage: React.FC = () => {
       netSalary: 670,
       paymentStatus: 'paid',
       paymentDate: new Date('2026-06-20'),
+      // Attendance data
+      workHours: 165,
+      attendancePercentage: 95,
+      lateDeduction: 10,
+      absenceDeduction: 0,
+      // Advances data
+      advancesDeduction: 50,
+      advancesRemaining: 150,
     },
     {
       employeeId: 'emp_2',
@@ -58,6 +74,14 @@ const PayrollPage: React.FC = () => {
       deductions: 25,
       netSalary: 469,
       paymentStatus: 'pending',
+      // Attendance data
+      workHours: 155,
+      attendancePercentage: 88,
+      lateDeduction: 15,
+      absenceDeduction: 20,
+      // Advances data
+      advancesDeduction: 0,
+      advancesRemaining: 150,
     },
     {
       employeeId: 'emp_3',
@@ -71,6 +95,14 @@ const PayrollPage: React.FC = () => {
       netSalary: 894,
       paymentStatus: 'paid',
       paymentDate: new Date('2026-06-20'),
+      // Attendance data
+      workHours: 175,
+      attendancePercentage: 100,
+      lateDeduction: 0,
+      absenceDeduction: 0,
+      // Advances data
+      advancesDeduction: 100,
+      advancesRemaining: 0,
     },
   ];
 
@@ -235,9 +267,24 @@ const PayrollPage: React.FC = () => {
                                 <span>المكافآت:</span>
                                 <span className="font-bold">{entry.bonuses.toFixed(2)} OMR</span>
                               </div>
-                              <div className="flex justify-between text-red-600">
-                                <span>الخصومات:</span>
-                                <span className="font-bold">-{entry.deductions.toFixed(2)} OMR</span>
+                              <div className="border-t pt-2 text-sm">
+                                <p className="font-bold text-gray-800 mb-2">الخصومات:</p>
+                                <div className="flex justify-between text-red-600">
+                                  <span>خصم التأخير:</span>
+                                  <span className="font-bold">-{entry.lateDeduction.toFixed(2)} OMR</span>
+                                </div>
+                                <div className="flex justify-between text-red-600">
+                                  <span>خصم الغياب:</span>
+                                  <span className="font-bold">-{entry.absenceDeduction.toFixed(2)} OMR</span>
+                                </div>
+                                <div className="flex justify-between text-red-600">
+                                  <span>خصم السلف:</span>
+                                  <span className="font-bold">-{entry.advancesDeduction.toFixed(2)} OMR</span>
+                                </div>
+                                <div className="flex justify-between text-red-600">
+                                  <span>خصومات أخرى:</span>
+                                  <span className="font-bold">-{(entry.deductions - entry.lateDeduction - entry.absenceDeduction - entry.advancesDeduction).toFixed(2)} OMR</span>
+                                </div>
                               </div>
                               <div className="border-t pt-2 flex justify-between text-blue-600 font-bold">
                                 <span>الراتب الصافي:</span>
@@ -248,22 +295,26 @@ const PayrollPage: React.FC = () => {
 
                           {/* Performance Metrics */}
                           <div>
-                            <h4 className="font-bold text-gray-800 mb-3">مقاييس الأداء</h4>
+                            <h4 className="font-bold text-gray-800 mb-3">مقاييس الأداء والحضور</h4>
                             <div className="space-y-2 text-sm">
                               <div className="flex justify-between">
                                 <span>إجمالي المبيعات:</span>
                                 <span className="font-bold text-green-600">{entry.totalSales.toFixed(2)} OMR</span>
                               </div>
                               <div className="flex justify-between">
-                                <span>متوسط العمولة:</span>
-                                <span className="font-bold">
-                                  {((entry.commissionsEarned / entry.totalSales) * 100).toFixed(2)}%
+                                <span>ساعات العمل:</span>
+                                <span className="font-bold text-blue-600">{entry.workHours} ساعة</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span>نسبة الحضور:</span>
+                                <span className={`font-bold ${entry.attendancePercentage >= 95 ? 'text-green-600' : entry.attendancePercentage >= 80 ? 'text-yellow-600' : 'text-red-600'}`}>
+                                  {entry.attendancePercentage}%
                                 </span>
                               </div>
                               <div className="flex justify-between">
-                                <span>نسبة الراتب للمبيعات:</span>
-                                <span className="font-bold">
-                                  {((entry.baseSalary / entry.totalSales) * 100).toFixed(2)}%
+                                <span>السلف المتبقية:</span>
+                                <span className={`font-bold ${entry.advancesRemaining > 0 ? 'text-red-600' : 'text-green-600'}`}>
+                                  {entry.advancesRemaining.toFixed(2)} OMR
                                 </span>
                               </div>
                               <div className="flex justify-between">
