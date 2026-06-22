@@ -38,6 +38,25 @@ export default defineConfig(({mode}) => {
         '@': path.resolve(__dirname, '.'),
       },
     },
+    build: {
+      rollupOptions: {
+        output: {
+          manualChunks: (id) => {
+            if (id.includes('node_modules')) {
+              if (id.includes('recharts')) return 'chunk-recharts';
+              if (id.includes('motion')) return 'chunk-motion';
+              if (id.includes('supabase')) return 'chunk-supabase';
+              if (id.includes('i18next')) return 'chunk-i18n';
+              return 'vendor';
+            }
+            if (id.includes('/src/pages/')) {
+              const match = id.match(/pages\/([^/]+)\.tsx/);
+              if (match) return `page-${match[1].toLowerCase()}`;
+            }
+          }
+        }
+      }
+    },
     server: {
       // HMR is disabled in AI Studio via DISABLE_HMR env var.
       // Do not modifyâfile watching is disabled to prevent flickering during agent edits.
