@@ -21,6 +21,11 @@ export default function ExpensesPage() {
   const [expenses, setExpenses] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editDesc, setEditDesc] = useState("");
+  const [editAmount, setEditAmount] = useState("");
+  const [editCategory, setEditCategory] = useState("Supplies");
+  const [editDate, setEditDate] = useState("");
   const [q, setQ] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
   
@@ -92,6 +97,40 @@ export default function ExpensesPage() {
     if (!ok) return;
     try {
       await unwrap(useCases.expenses.delete(id));
+      load();
+    } catch (e) {
+      showToast('error', 'Error', ((e as Error).message || String(e)));
+    }
+  }
+
+  function handleEdit(exp: any) {
+    setEditingId(exp.id);
+    setEditDesc(exp.description);
+    setEditAmount(String(exp.amount));
+    setEditCategory(exp.category);
+    setEditDate(new Date(exp.date).toISOString().split("T")[0]);
+  }
+
+  async function handleSaveEdit() {
+    if (!editDesc.trim() || !editAmount) {
+      showToast('error', t('Error'), t("Please fill all required fields"));
+      return;
+    }
+    
+    const amountNum = Number(editAmount);
+    if (isNaN(amountNum) || amountNum <= 0) {
+      showToast('error', t('Error'), t("Amount must be greater than 0"));
+      return;
+    }
+
+    try {
+      await unwrap(useCases.expenses.update(editingId!, {
+        description: editDesc.trim(),
+        amount: amountNum,
+        category: editCategory,
+        date: new Date(editDate),
+      }));
+      setEditingId(null);
       load();
     } catch (e) {
       showToast('error', 'Error', ((e as Error).message || String(e)));
@@ -274,13 +313,22 @@ export default function ExpensesPage() {
                       </div>
                     </td>
                     <td>
-                      <button 
-                        onClick={() => handleDelete(exp.id)} 
-                        className="h-12 w-12 rounded-2xl border border-border bg-card flex items-center justify-center text-muted-foreground hover:bg-destructive/10 hover:text-destructive hover:border-destructive/20 transition-all shadow-sm hover:scale-110 active:scale-95"
-                        title={t("Delete")}
-                      >
-                        <Trash2 className="h-5 w-5" />
-                      </button>
+                      <div className="flex items-center gap-2">
+                        <button 
+                          onClick={() => handleEdit(exp)} 
+                          className="h-12 w-12 rounded-2xl border border-border bg-card flex items-center justify-center text-muted-foreground hover:bg-primary/10 hover:text-primary hover:border-primary/20 transition-all shadow-sm hover:scale-110 active:scale-95"
+                          title={t("Edit")}
+                        >
+                          <Save className="h-5 w-5" />
+                        </button>
+                        <button 
+                          onClick={() => handleDelete(exp.id)} 
+                          className="h-12 w-12 rounded-2xl border border-border bg-card flex items-center justify-center text-muted-foreground hover:bg-destructive/10 hover:text-destructive hover:border-destructive/20 transition-all shadow-sm hover:scale-110 active:scale-95"
+                          title={t("Delete")}
+                        >
+                          <Trash2 className="h-5 w-5" />
+                        </button>
+                      </div>
                     </td>
                   </motion.tr>
                 ))}
@@ -460,7 +508,104 @@ export default function ExpensesPage() {
             </motion.div>
           </div>
         )}
-      </AnimatePresence>
-    </div>
-  );
-}
+
+        {editingId && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-6">
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setEditingId(null)}
+              className="absolute inset-0 bg-black/60 backdrop-blur-xl" 
+            />
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.9, y: 40 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 40 }}
+              className="relative w-full max-w-lg rounded-[1.5rem] sm:rounded-[3rem] border border-border bg-card shadow-2xl overflow-hidden"
+            >
+              <div className="flex items-center justify-between border-b border-border px-6 sm:px-10 py-5 sm:py-8 bg-muted/20">
+                <div className="flex items-center gap-4">
+                  <div className="h-14 w-14 rounded-2xl bg-primary/10 flex items-center justify-center text-primary shadow-inner">
+                    <Save className="h-7 w-7" />
+                  </div>
+                  <div className="space-y-0.5">
+                    <h2 className="text-2xl font-bold text-foreground">{t("Edit Expense")}</h2>
+                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">{t("Update Expense Details")}</p>
+                  </div>
+                </div>
+                <button 
+                  onClick={() => setEditingId(null)}
+                  className="h-12 w-12 rounded-full hover:bg-muted flex items-center justify-center transition-all hover:rotate-90"
+                >
+                  <X className="h-6 w-6" />
+                </button>
+              </div>
+
+              <div className="p-6 sm:p-10 space-y-6 sm:space-y-8">
+                <div className="space-y-3">
+                  <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.2em] ms-2">{t("Description")}</label>
+                  <div className="relative">
+                    <Receipt className="absolute start-5 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                    <input 
+                      className="w-full rounded-[1.5rem] border border-border bg-muted/30 ps-14 pe-6 py-4.5 text-sm font-bold focus:ring-4 focus:ring-primary/10 focus:border-primary outline-none transition-all shadow-inner"
+                      value={editDesc}
+                      onChange={(e) => setEditDesc(e.target.value)}
+                      placeholder={t("e.g., Electricity Bill")}
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-8">
+                  <div className="space-y-3">
+                    <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.2em] ms-2">{t("Amount")}</label>
+                    <div className="relative">
+                      <DollarSign className="absolute start-5 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                      <input 
+                        type="number"
+                        className="w-full rounded-[1.5rem] border border-border bg-muted/30 ps-14 pe-6 py-4.5 text-sm font-bold focus:ring-4 focus:ring-primary/10 focus:border-primary outline-none transition-all shadow-inner"
+                        value={editAmount}
+                        onChange={(e) => setEditAmount(e.target.value)}
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-3">
+                    <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.2em] ms-2">{t("Category")}</label>
+                    <div className="relative">
+                      <Tag className="absolute start-5 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                      <select 
+                        className="w-full rounded-[1.5rem] border border-border bg-muted/30 ps-14 pe-10 py-4.5 text-sm font-bold focus:ring-4 focus:ring-primary/10 focus:border-primary outline-none transition-all appearance-none shadow-inner"
+                        value={editCategory}
+                        onChange={(e) => setEditCategory(e.target.value)}
+                      >
+                        {categories.map(c => <option key={c} value={c}>{t(c)}</option>)}
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.2em] ms-2">{t("Date")}</label>
+                  <div className="relative">
+                    <Calendar className="absolute start-5 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                    <input 
+                      type="date"
+                      className="w-full rounded-[1.5rem] border border-border bg-muted/30 ps-14 pe-6 py-4.5 text-sm font-bold focus:ring-4 focus:ring-primary/10 focus:border-primary outline-none transition-all shadow-inner"
+                      value={editDate}
+                      onChange={(e) => setEditDate(e.target.value)}
+                    />
+                  </div>
+                </div>
+
+                <button 
+                  onClick={handleSaveEdit}
+                  className="group relative w-full h-16 rounded-[2rem] bg-primary font-bold text-primary-foreground shadow-2xl shadow-primary/30 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-3 overflow-hidden"
+                >
+                  <div className="absolute inset-0 bg-gradient-to-tr from-white/0 via-white/10 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000" />
+                  <Save className="h-6 w-6 relative z-10" />
+                  <span className="text-lg relative z-10">{t("Save Changes")}</span>
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
