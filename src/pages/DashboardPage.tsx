@@ -6,7 +6,7 @@ import {
   Receipt, Sparkles, ArrowRight, Plus, 
   ShoppingBag, Calendar, UserPlus, FileText,
   Activity, Zap, Clock, ChevronRight, MoreVertical,
-  LayoutGrid, Wallet, BarChart3
+  LayoutGrid, Wallet, BarChart3, DollarSign, TrendingDown
 } from "lucide-react";
 import { useCases } from "../app/composition/useCases";
 import { unwrap } from "../shared/hooks/useApplication";
@@ -16,7 +16,8 @@ import { useAuth } from "../auth";
 import { clsx } from "clsx";
 import { 
   AreaChart, Area, ResponsiveContainer, 
-  LineChart, Line, XAxis, YAxis, Tooltip 
+  LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid,
+  BarChart, Bar, Legend, Cell
 } from "recharts";
 import { useNavigate } from "react-router-dom";
 import { DashboardSummary, PnlData } from "../application/dto";
@@ -26,9 +27,9 @@ export default function DashboardPage() {
   const { showToast } = useToast();
   const me = useAuth().me;
   const nav = useNavigate();
-  // Using explicit types based on expected structure
   const [summary, setSummary] = useState<DashboardSummary | null>(null);
   const [pnl, setPnl] = useState<PnlData | null>(null);
+  const [last7Days, setLast7Days] = useState<{date: string; revenue: number}[]>([]);
   const [activity, setActivity] = useState<{id: string, type: string, message: string, createdAt: string, user?: {username?: string}}[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -41,18 +42,25 @@ export default function DashboardPage() {
       void loadActivity(s);
 
       if (s && s.canViewRevenue) {
-        const p = await unwrap(useCases.dashboard.getPnlMonth());
-        setPnl(p);
+        try {
+          const p = await unwrap(useCases.dashboard.getPnlMonth());
+          setPnl(p);
+        } catch (e) {
+          console.error("Failed to load P&L:", e);
+        }
+
+        try {
+          const last7 = await unwrap(useCases.dashboard.getRevenueLast7Days());
+          setLast7Days(last7 || []);
+        } catch (e) {
+          console.error("Failed to load 7-day revenue:", e);
+        }
       } else {
         setPnl(null);
+        setLast7Days([]);
       }
     } catch (err: any) {
-      // In a real app we might show a toast here. In dashboard we just leave things null.
-      if (err.code === "BACKEND_METHOD_UNSUPPORTED") {
-         // show a gentle toast, but it's acceptable for dashboard to just render empty state when unsupported
-         // But per requirements, DO NOT simulate success. We should show standard error.
-         showToast('error', t("Backend Required"), t("BACKEND_METHOD_UNSUPPORTED"));
-      }
+      showToast('error', t("Error"), err.message || t("Failed to load dashboard"));
     } finally {
       setLoading(false);
     }
@@ -116,7 +124,7 @@ export default function DashboardPage() {
       const merged = results
         .flat()
         .sort((x, y) => new Date(y.createdAt).getTime() - new Date(x.createdAt).getTime())
-        .slice(0, 8);
+        .slice(0, 6);
 
       setActivity(merged);
     } catch {
@@ -138,46 +146,49 @@ export default function DashboardPage() {
     show: { y: 0, opacity: 1, transition: { type: "spring" as const, stiffness: 300, damping: 24 } }
   };
 
-  const trendData = useMemo(() => [
-    { date: "M", value: 400 }, { date: "T", value: 300 }, { date: "W", value: 500 }, { date: "T", value: 450 }, { date: "F", value: 600 }, { date: "S", value: 550 }, { date: "S", value: 700 }
-  ], []);
+  const chartData = useMemo(() => last7Days.length > 0 ? last7Days : [
+    { date: "Mon", revenue: 0 }, { date: "Tue", revenue: 0 }, { date: "Wed", revenue: 0 }, 
+    { date: "Thu", revenue: 0 }, { date: "Fri", revenue: 0 }, { date: "Sat", revenue: 0 }, { date: "Sun", revenue: 0 }
+  ], [last7Days]);
+
+  const totalRevenue7Days = useMemo(() => chartData.reduce((sum, d) => sum + (d.revenue || 0), 0), [chartData]);
+  const avgRevenue7Days = useMemo(() => totalRevenue7Days / chartData.length, [totalRevenue7Days, chartData]);
 
   return (
     <motion.div 
       variants={container}
       initial="hidden"
       animate="show"
-      className="space-y-8 sm:space-y-12 pb-12"
+      className="space-y-6 sm:space-y-8 pb-12"
     >
 
-
       {/* Welcome Header */}
-      <motion.div variants={item} className="flex flex-col md:flex-row md:items-end justify-between gap-6 sm:gap-8">
+      <motion.div variants={item} className="flex flex-col md:flex-row md:items-end justify-between gap-4 md:gap-6">
         <div className="space-y-2 sm:space-y-3">
-          <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-1.5 text-[10px] font-bold uppercase tracking-[0.2em] text-primary shadow-sm">
-            <Sparkles className="h-3.5 w-3.5" />
+          <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1 text-[9px] font-bold uppercase tracking-[0.2em] text-primary shadow-sm w-fit">
+            <Sparkles className="h-3 w-3" />
             {t("Intelligence Dashboard")}
           </div>
-          <h1 className="text-3xl sm:text-5xl md:text-6xl font-bold tracking-tighter text-foreground leading-tight">
+          <h1 className="text-2xl sm:text-4xl md:text-5xl font-bold tracking-tighter text-foreground leading-tight">
             {t("Welcome back")}, <span className="text-primary">{me?.username || 'admin'}</span>
           </h1>
-          <p className="text-muted-foreground text-base sm:text-xl max-w-2xl font-medium">
+          <p className="text-muted-foreground text-sm sm:text-base max-w-2xl font-medium">
             {t("Your center is performing optimally today. Here's a quick look at the latest metrics and activities.")}
           </p>
         </div>
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2 sm:gap-3">
           <button 
             onClick={load} 
-            className="group relative h-16 w-16 rounded-[2rem] border border-border bg-card flex items-center justify-center text-muted-foreground hover:bg-primary/10 hover:text-primary hover:border-primary/20 transition-all shadow-xl hover:scale-110 active:scale-95"
+            className="group relative h-12 w-12 rounded-xl border border-border bg-card flex items-center justify-center text-muted-foreground hover:bg-primary/10 hover:text-primary hover:border-primary/20 transition-all shadow-lg hover:scale-110 active:scale-95"
           >
-            <Zap className={clsx("h-6 w-6", loading && "animate-spin")} />
+            <Zap className={clsx("h-5 w-5", loading && "animate-spin")} />
           </button>
           <button 
             onClick={() => nav("/pos")}
-            className="group relative inline-flex items-center justify-center rounded-[2rem] bg-primary px-10 py-5 text-sm font-bold text-primary-foreground shadow-2xl shadow-primary/30 transition-all hover:scale-105 active:scale-95 overflow-hidden"
+            className="group relative inline-flex items-center justify-center rounded-xl bg-primary px-4 sm:px-6 py-3 text-xs sm:text-sm font-bold text-primary-foreground shadow-2xl shadow-primary/30 transition-all hover:scale-105 active:scale-95 overflow-hidden"
           >
-            <span className="relative z-10 flex items-center gap-3">
-              <Plus className="h-5 w-5" />
+            <span className="relative z-10 flex items-center gap-2">
+              <Plus className="h-4 w-4" />
               {t("New Invoice")}
             </span>
             <div className="absolute inset-0 bg-gradient-to-tr from-white/0 via-white/10 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000" />
@@ -185,106 +196,240 @@ export default function DashboardPage() {
         </div>
       </motion.div>
 
-      {/* Stats Grid */}
-      <div className="grid gap-4 sm:gap-6 md:gap-8 md:grid-cols-2 lg:grid-cols-4">
+      {/* Key Metrics Grid */}
+      <div className="grid gap-3 sm:gap-4 md:gap-6 md:grid-cols-2 lg:grid-cols-4">
         <StatCard 
           variants={item}
           title={t("Today's Revenue")} 
-          value={loading ? "…" : summary?.canViewRevenue ? summary?.todayRevenue : "—"}
-          subValue={summary?.canViewRevenue ? t("Total Invoices Today") : t("Backend Required")}
-          icon={<Coins className="h-6 w-6" />}
-          trend="+0%"
+          value={loading ? "…" : summary?.canViewRevenue ? `${summary?.todayRevenue || 0}` : "—"}
+          subValue={summary?.canViewRevenue ? t("Total Invoices Today") : t("No data")}
+          icon={<DollarSign className="h-5 w-5" />}
+          trend={summary?.canViewRevenue ? "+0%" : "—"}
           color="emerald"
-          chartData={summary?.canViewRevenue ? trendData : []}
         />
         <StatCard 
           variants={item}
           title={t("Appointments")} 
           value={loading ? "…" : summary?.appointments ?? 0}
-          subValue={t("Total Appointments")}
-          icon={<CalendarDays className="h-6 w-6" />}
-          trend="+0"
+          subValue={t("Scheduled")}
+          icon={<CalendarDays className="h-5 w-5" />}
+          trend={`+${summary?.todayAppointments || 0}`}
           color="blue"
-          chartData={trendData}
         />
         <StatCard 
           variants={item}
           title={t("Customers")} 
           value={loading ? "…" : summary?.customers ?? 0}
-          subValue={t("Total customers")}
-          icon={<Users className="h-6 w-6" />}
-          trend="+0"
+          subValue={`+${summary?.newCustomersThisMonth || 0} ${t("This Month")}`}
+          icon={<Users className="h-5 w-5" />}
+          trend={`+${summary?.newCustomersThisMonth || 0}`}
           color="purple"
-          chartData={trendData}
         />
         <StatCard 
           variants={item}
           title={t("Low Stock")} 
           value={loading ? "…" : summary?.lowStockCount ?? 0}
           subValue={t("Items need attention")}
-          icon={<AlertTriangle className="h-6 w-6" />}
-          trend={(summary?.lowStockCount && summary.lowStockCount > 0) ? "Action" : "Clear"}
-          color="rose"
-          chartData={trendData}
+          icon={<AlertTriangle className="h-5 w-5" />}
+          trend={(summary?.lowStockCount && summary.lowStockCount > 0) ? "⚠️ Action" : "✓ Clear"}
+          color={summary?.lowStockCount && summary.lowStockCount > 0 ? "rose" : "emerald"}
         />
       </div>
 
-      {/* Quick Actions Bento */}
-      <motion.div variants={item} className="grid gap-4 sm:gap-6 md:gap-8 md:grid-cols-2 lg:grid-cols-4">
-        <QuickActionCard 
-          title={t("Book Appointment")} 
-          icon={<Calendar className="h-6 w-6" />} 
-          color="blue" 
-          onClick={() => nav("/appointments")}
-        />
-        <QuickActionCard 
-          title={t("Add Customer")} 
-          icon={<UserPlus className="h-6 w-6" />} 
-          color="emerald" 
-          onClick={() => nav("/customers")}
-        />
-        <QuickActionCard 
-          title={t("Manage Services")} 
-          icon={<Scissors className="h-6 w-6" />} 
-          color="purple" 
-          onClick={() => nav("/services")}
-        />
-        <QuickActionCard 
-          title={t("View Reports")} 
-          icon={<BarChart3 className="h-6 w-6" />} 
-          color="amber" 
-          onClick={() => nav("/reports")}
-        />
-      </motion.div>
-
-      <div className="grid gap-4 sm:gap-6 lg:gap-10 lg:grid-cols-5">
-        {/* Recent Activity */}
-        <motion.div variants={item} className="lg:col-span-3 rounded-[2rem] sm:rounded-[3rem] border border-border bg-card shadow-2xl overflow-hidden flex flex-col">
-          <div className="flex items-center justify-between border-b border-border px-4 py-3 sm:px-6 sm:py-5 lg:px-10 lg:py-8 bg-muted/30">
-            <div className="space-y-1">
-              <h2 className="text-xl font-bold flex items-center gap-3">
-                <Activity className="h-6 w-6 text-primary" />
-                {t("Live Activity Feed")}
-              </h2>
-              <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-[0.2em]">{t("Real-time operational updates")}</p>
+      {/* Main Content Grid */}
+      <div className="grid gap-4 sm:gap-6 lg:gap-8 lg:grid-cols-3">
+        
+        {/* 7-Day Revenue Chart */}
+        <motion.div variants={item} className="lg:col-span-2 rounded-2xl sm:rounded-3xl border border-border bg-card shadow-xl overflow-hidden flex flex-col">
+          <div className="border-b border-border px-4 sm:px-6 py-4 sm:py-6 bg-muted/20">
+            <div className="flex items-center justify-between">
+              <div className="space-y-1">
+                <h2 className="text-lg sm:text-xl font-bold flex items-center gap-2">
+                  <TrendingUp className="h-5 w-5 text-emerald-500" />
+                  {t("7-Day Revenue")}
+                </h2>
+                <p className="text-[9px] text-muted-foreground font-bold uppercase tracking-[0.2em]">{t("Daily revenue trend")}</p>
+              </div>
+              <div className="text-end">
+                <p className="text-sm font-bold text-foreground">{totalRevenue7Days.toFixed(2)} {summary?.currency}</p>
+                <p className="text-[9px] text-muted-foreground font-bold uppercase">{t("Total")}</p>
+              </div>
             </div>
-            <button className="group flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.2em] text-primary hover:opacity-80 transition-opacity">
-              {t("View Full Log")}
-              <ArrowRight className={clsx("h-3 w-3 transition-transform", i18n.language === "ar" ? "rotate-180 group-hover:-translate-x-1" : "group-hover:translate-x-1")} />
+          </div>
+          <div className="p-4 sm:p-6 flex-1 min-h-[300px] flex items-center justify-center">
+            {loading ? (
+              <div className="flex flex-col items-center justify-center gap-4 opacity-40">
+                <div className="h-10 w-10 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+                <p className="text-[10px] font-bold uppercase tracking-widest">{t("Loading Chart...")}</p>
+              </div>
+            ) : chartData.length === 0 || totalRevenue7Days === 0 ? (
+              <div className="flex flex-col items-center justify-center gap-4 opacity-30 text-center">
+                <BarChart3 className="h-12 w-12" />
+                <div>
+                  <p className="text-xs font-bold uppercase tracking-widest">{t("No Revenue Data")}</p>
+                  <p className="text-[9px] text-muted-foreground mt-1">{t("Start selling to see trends")}</p>
+                </div>
+              </div>
+            ) : (
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={chartData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#10b981" stopOpacity={0.8}/>
+                      <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
+                  <XAxis 
+                    dataKey="date" 
+                    stroke="var(--muted-foreground)" 
+                    style={{ fontSize: '12px', fontWeight: 600 }}
+                  />
+                  <YAxis 
+                    stroke="var(--muted-foreground)"
+                    style={{ fontSize: '12px', fontWeight: 600 }}
+                  />
+                  <Tooltip 
+                    contentStyle={{
+                      backgroundColor: 'var(--card)',
+                      border: '1px solid var(--border)',
+                      borderRadius: '12px',
+                      boxShadow: '0 10px 25px rgba(0,0,0,0.1)'
+                    }}
+                    labelStyle={{ color: 'var(--foreground)', fontWeight: 600 }}
+                    formatter={(value) => [`${value} ${summary?.currency}`, t("Revenue")]}
+                  />
+                  <Area 
+                    type="monotone" 
+                    dataKey="revenue" 
+                    stroke="#10b981" 
+                    strokeWidth={3}
+                    fillOpacity={1} 
+                    fill="url(#colorRevenue)" 
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            )}
+          </div>
+        </motion.div>
+
+        {/* Financial Summary Card */}
+        <motion.div variants={item} className="rounded-2xl sm:rounded-3xl border border-border bg-card shadow-xl overflow-hidden flex flex-col">
+          <div className="border-b border-border px-4 sm:px-6 py-4 sm:py-6 bg-muted/20">
+            <div className="space-y-1">
+              <h2 className="text-lg sm:text-xl font-bold flex items-center gap-2">
+                <Wallet className="h-5 w-5 text-emerald-500" />
+                {t("Financial Summary")}
+              </h2>
+              <p className="text-[9px] text-muted-foreground font-bold uppercase tracking-[0.2em]">{t("This Month")}</p>
+            </div>
+          </div>
+          <div className="p-4 sm:p-6 flex-1 flex flex-col">
+            {loading ? (
+              <div className="flex-1 flex flex-col items-center justify-center gap-4 opacity-40">
+                <div className="h-10 w-10 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+                <p className="text-[10px] font-bold uppercase tracking-widest">{t("Processing...")}</p>
+              </div>
+            ) : !pnl ? (
+              <div className="flex-1 flex flex-col items-center justify-center text-center space-y-4 opacity-30">
+                <Coins className="h-12 w-12" />
+                <div>
+                  <p className="text-xs font-bold uppercase tracking-widest">{t("No Financial Data")}</p>
+                  <p className="text-[9px] text-muted-foreground mt-1">{t("Complete transactions to see data")}</p>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-4 flex-1 flex flex-col">
+                {/* Net Profit - Highlighted */}
+                <div className="relative rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-600 p-4 text-white shadow-lg overflow-hidden group">
+                  <div className="relative z-10">
+                    <p className="text-[9px] font-bold uppercase tracking-[0.3em] opacity-80">{t("Net Profit")}</p>
+                    <div className="flex items-baseline gap-2 mt-2">
+                      <h3 className="text-3xl sm:text-4xl font-bold tracking-tighter">{pnl.profit}</h3>
+                      <span className="text-xs font-bold opacity-70 uppercase">{summary?.currency}</span>
+                    </div>
+                  </div>
+                  <TrendingUp className="absolute bottom-[-20px] end-[-20px] h-32 w-32 text-white/10 group-hover:scale-110 transition-transform duration-700" />
+                </div>
+
+                {/* Financial Rows */}
+                <div className="space-y-2 flex-1">
+                  <FinancialRow 
+                    label={t("Gross Revenue")} 
+                    value={pnl.revenue} 
+                    currency={summary?.currency} 
+                    icon={<TrendingUp className="h-4 w-4" />}
+                    color="emerald"
+                  />
+                  <FinancialRow 
+                    label={t("Staff Salaries")} 
+                    value={pnl.baseSalaries} 
+                    currency={summary?.currency} 
+                    icon={<Users className="h-4 w-4" />}
+                    color="orange"
+                  />
+                  <FinancialRow 
+                    label={t("Commissions")} 
+                    value={pnl.commissions} 
+                    currency={summary?.currency} 
+                    icon={<Scissors className="h-4 w-4" />}
+                    color="blue"
+                  />
+                  <FinancialRow 
+                    label={t("Other Expenses")} 
+                    value={pnl.expenses} 
+                    currency={summary?.currency} 
+                    icon={<AlertTriangle className="h-4 w-4" />}
+                    color="rose"
+                  />
+                </div>
+
+                <button 
+                  onClick={() => nav("/reports")}
+                  className="group w-full rounded-lg bg-secondary py-3 text-xs font-bold text-secondary-foreground transition-all hover:bg-secondary/80 flex items-center justify-center gap-2 shadow-lg mt-auto"
+                >
+                  {t("View Detailed Reports")}
+                  <ArrowRight className={clsx("h-4 w-4 transition-transform", i18n.language === "ar" ? "rotate-180 group-hover:-translate-x-1" : "group-hover:translate-x-1")} />
+                </button>
+              </div>
+            )}
+          </div>
+        </motion.div>
+      </div>
+
+      {/* Activity & Quick Actions */}
+      <div className="grid gap-4 sm:gap-6 lg:gap-8 lg:grid-cols-3">
+        
+        {/* Activity Feed */}
+        <motion.div variants={item} className="lg:col-span-2 rounded-2xl sm:rounded-3xl border border-border bg-card shadow-xl overflow-hidden flex flex-col">
+          <div className="flex items-center justify-between border-b border-border px-4 sm:px-6 py-4 sm:py-6 bg-muted/20">
+            <div className="space-y-1">
+              <h2 className="text-lg sm:text-xl font-bold flex items-center gap-2">
+                <Activity className="h-5 w-5 text-primary" />
+                {t("Live Activity")}
+              </h2>
+              <p className="text-[9px] text-muted-foreground font-bold uppercase tracking-[0.2em]">{t("Recent updates")}</p>
+            </div>
+            <button 
+              onClick={load}
+              className="group flex items-center gap-1 text-[9px] font-bold uppercase tracking-[0.2em] text-primary hover:opacity-80 transition-opacity"
+            >
+              {t("Refresh")}
+              <Zap className={clsx("h-3 w-3 transition-transform", loading && "animate-spin")} />
             </button>
           </div>
-          <div className="p-6 space-y-3 max-h-[600px] overflow-auto scrollbar-hide">
+          <div className="p-4 sm:p-6 space-y-2 max-h-[400px] overflow-auto scrollbar-hide">
             <AnimatePresence mode="popLayout">
               {activity.length === 0 && !loading && (
                 <motion.div 
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
-                  className="text-sm text-muted-foreground text-center py-48 flex flex-col items-center gap-6"
+                  className="text-sm text-muted-foreground text-center py-12 flex flex-col items-center gap-4 opacity-30"
                 >
-                  <div className="h-20 w-20 rounded-[2rem] bg-muted flex items-center justify-center">
-                    <List className="h-10 w-10 opacity-20" />
+                  <div className="h-12 w-12 rounded-lg bg-muted flex items-center justify-center">
+                    <List className="h-6 w-6" />
                   </div>
-                  <p className="font-bold uppercase tracking-[0.3em] opacity-40">{t("No Activity Recorded")}</p>
+                  <p className="font-bold uppercase tracking-[0.3em]">{t("No Activity Yet")}</p>
                 </motion.div>
               )}
               {activity.map((x, idx) => (
@@ -293,26 +438,16 @@ export default function DashboardPage() {
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0, transition: { delay: idx * 0.05 } }}
                   key={x.id} 
-                  className="group flex items-center gap-6 rounded-[2rem] p-6 transition-all hover:bg-muted/50 hover:shadow-inner border border-transparent hover:border-border"
+                  className="group flex items-center gap-3 rounded-lg p-3 transition-all hover:bg-muted/50 hover:shadow-inner border border-transparent hover:border-border"
                 >
-                  <div className="h-14 w-14 rounded-2xl bg-muted flex items-center justify-center shrink-0 group-hover:bg-primary/10 group-hover:text-primary transition-all group-hover:scale-110 shadow-inner">
+                  <div className="h-10 w-10 rounded-lg bg-muted flex items-center justify-center shrink-0 group-hover:bg-primary/10 group-hover:text-primary transition-all text-sm font-bold">
                     <ActivityIcon type={x.type} />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between gap-4">
-                      <p className="text-base font-bold truncate text-foreground leading-tight group-hover:text-primary transition-colors">{x.message}</p>
-                      <span className="text-[10px] font-bold text-muted-foreground bg-muted px-3 py-1.5 rounded-xl uppercase shrink-0 tracking-widest">
-                        {new Date(x.createdAt).toLocaleTimeString(i18n.language, { hour: '2-digit', minute: '2-digit' })}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-3 mt-2">
-                      <div className="h-5 w-5 rounded-lg bg-primary/20 flex items-center justify-center text-[10px] font-bold text-primary shadow-sm">
-                        {x.user?.username?.[0] || 'S'}
-                      </div>
-                      <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest opacity-60">
-                        {x.user?.username ? `${t("By")}: ${x.user.username}` : t("System")}
-                      </p>
-                    </div>
+                    <p className="text-xs font-bold truncate text-foreground leading-tight group-hover:text-primary transition-colors">{x.message}</p>
+                    <p className="text-[9px] text-muted-foreground font-bold uppercase tracking-widest mt-0.5 opacity-60">
+                      {new Date(x.createdAt).toLocaleTimeString(i18n.language, { hour: '2-digit', minute: '2-digit' })}
+                    </p>
                   </div>
                 </motion.div>
               ))}
@@ -320,63 +455,43 @@ export default function DashboardPage() {
           </div>
         </motion.div>
 
-        {/* Financial Health Summary */}
-        <motion.div variants={item} className="lg:col-span-2 rounded-[2rem] sm:rounded-[3rem] border border-border bg-card shadow-2xl overflow-hidden flex flex-col">
-          <div className="border-b border-border px-6 py-5 sm:px-10 sm:py-8 bg-muted/30">
-            <div className="space-y-1">
-              <h2 className="text-xl font-bold flex items-center gap-3">
-                <Wallet className="h-6 w-6 text-emerald-500" />
-                {t("Financial Health")}
-              </h2>
-              <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-[0.2em]">{t("Monthly Performance Overview")}</p>
-            </div>
-          </div>
-          <div className="p-6 sm:p-10 flex-1 flex flex-col">
-            {loading ? (
-              <div className="flex-1 flex flex-col items-center justify-center gap-6">
-                <div className="h-12 w-12 border-4 border-primary border-t-transparent rounded-full animate-spin" />
-                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.3em]">{t("Processing Analytics...")}</p>
-              </div>
-            ) : !pnl ? (
-              <div className="flex-1 flex flex-col items-center justify-center text-center space-y-6">
-                <div className="h-24 w-24 rounded-[2.5rem] bg-muted flex items-center justify-center">
-                  <Coins className="h-12 w-12 text-muted-foreground/30" />
-                </div>
-                <div className="space-y-2">
-                  <p className="text-sm font-bold text-foreground uppercase tracking-[0.2em]">{t("No Financial Data")}</p>
-                </div>
-              </div>
-            ) : (
-              <div className="space-y-6 sm:space-y-10 h-full flex flex-col">
-                <div className="relative rounded-[1.5rem] sm:rounded-[2.5rem] bg-emerald-500 p-6 sm:p-10 text-white shadow-2xl shadow-emerald-500/20 overflow-hidden group">
-                  <div className="relative z-10">
-                    <p className="text-[10px] font-bold uppercase tracking-[0.3em] opacity-80">{t("Net Profit")}</p>
-                    <div className="flex items-baseline gap-2 sm:gap-3 mt-3 sm:mt-4">
-                      <h3 className="text-4xl sm:text-6xl font-bold tracking-tighter">{pnl.profit}</h3>
-                      <span className="text-xs sm:text-sm font-bold opacity-70 uppercase tracking-widest">{summary?.currency}</span>
-                    </div>
-                  </div>
-                  <TrendingUp className="absolute bottom-[-30px] end-[-30px] h-48 w-48 text-white/10 rotate-[-15deg] group-hover:scale-110 transition-transform duration-700" />
-                </div>
-                
-                <div className="space-y-6 flex-1">
-                  <FinancialRow label={t("Gross Revenue")} value={pnl.revenue} currency={summary?.currency} icon={<TrendingUp className="h-5 w-5 text-emerald-500" />} color="emerald" />
-                  <FinancialRow label={t("Staff Salaries")} value={pnl.baseSalaries} currency={summary?.currency} icon={<Users className="h-5 w-5 text-orange-500" />} color="orange" />
-                  <FinancialRow label={t("Commissions")} value={pnl.commissions} currency={summary?.currency} icon={<Scissors className="h-5 w-5 text-blue-500" />} color="blue" />
-                  <FinancialRow label={t("Other Expenses")} value={pnl.expenses} currency={summary?.currency} icon={<AlertTriangle className="h-5 w-5 text-rose-500" />} color="rose" />
-                </div>
-
-                <div className="pt-8">
-                  <button 
-                    onClick={() => nav("/reports")}
-                    className="group w-full rounded-[1.5rem] bg-secondary py-5 text-sm font-bold text-secondary-foreground transition-all hover:bg-secondary/80 flex items-center justify-center gap-3 shadow-lg"
-                  >
-                    {t("View Detailed Reports")}
-                    <ArrowRight className={clsx("h-5 w-5 transition-transform", i18n.language === "ar" ? "rotate-180 group-hover:-translate-x-1" : "group-hover:translate-x-1")} />
-                  </button>
-                </div>
-              </div>
-            )}
+        {/* Quick Actions */}
+        <motion.div variants={item} className="rounded-2xl sm:rounded-3xl border border-border bg-card shadow-xl overflow-hidden p-4 sm:p-6">
+          <h2 className="text-lg sm:text-xl font-bold mb-4 flex items-center gap-2">
+            <Zap className="h-5 w-5 text-primary" />
+            {t("Quick Actions")}
+          </h2>
+          <div className="space-y-2">
+            <QuickActionButton 
+              title={t("Book Appointment")} 
+              icon={<Calendar className="h-4 w-4" />} 
+              color="blue" 
+              onClick={() => nav("/appointments")}
+            />
+            <QuickActionButton 
+              title={t("Add Customer")} 
+              icon={<UserPlus className="h-4 w-4" />} 
+              color="emerald" 
+              onClick={() => nav("/customers")}
+            />
+            <QuickActionButton 
+              title={t("Manage Services")} 
+              icon={<Scissors className="h-4 w-4" />} 
+              color="purple" 
+              onClick={() => nav("/services")}
+            />
+            <QuickActionButton 
+              title={t("View Reports")} 
+              icon={<BarChart3 className="h-4 w-4" />} 
+              color="amber" 
+              onClick={() => nav("/reports")}
+            />
+            <QuickActionButton 
+              title={t("Settings")} 
+              icon={<MoreVertical className="h-4 w-4" />} 
+              color="slate" 
+              onClick={() => nav("/settings")}
+            />
           </div>
         </motion.div>
       </div>
@@ -384,87 +499,83 @@ export default function DashboardPage() {
   );
 }
 
-function StatCard({ title, value, subValue, icon, trend, color, variants, chartData }: {title: string, value: string | number, subValue: string, icon: React.ReactNode, trend: string, color: string, variants: import("motion/react").Variants, chartData: {date: string; value: number}[]}) {
+function StatCard({ title, value, subValue, icon, trend, color, variants }: {
+  title: string
+  value: string | number
+  subValue: string
+  icon: React.ReactNode
+  trend: string
+  color: string
+  variants: import("motion/react").Variants
+}) {
   const colorMap: Record<string, string> = {
-    primary: "bg-primary text-primary-foreground",
-    emerald: "bg-emerald-500 text-white",
-    blue: "bg-blue-500 text-white",
-    purple: "bg-purple-500 text-white",
-    rose: "bg-rose-500 text-white",
-    accent: "bg-accent text-accent-foreground"
-  };
-
-  const lightColorMap: Record<string, string> = {
-    primary: "bg-primary/10 text-primary",
     emerald: "bg-emerald-500/10 text-emerald-600",
     blue: "bg-blue-500/10 text-blue-600",
     purple: "bg-purple-500/10 text-purple-600",
     rose: "bg-rose-500/10 text-rose-600",
-    accent: "bg-accent/10 text-accent"
   };
 
   return (
     <motion.div 
       variants={variants}
-      className="group relative rounded-[2rem] sm:rounded-[3rem] border border-border bg-card p-5 sm:p-10 shadow-xl transition-all hover:shadow-2xl hover:-translate-y-2 overflow-hidden"
+      className="group relative rounded-xl sm:rounded-2xl border border-border bg-card p-4 sm:p-6 shadow-lg transition-all hover:shadow-xl hover:-translate-y-1 overflow-hidden"
     >
       <div className="flex items-start justify-between relative z-10">
-        <div className={clsx("rounded-2xl p-4 sm:p-5 transition-all group-hover:scale-110 shadow-inner", lightColorMap[color])}>
+        <div className={clsx("rounded-lg p-2.5 sm:p-3 transition-all group-hover:scale-110 shadow-sm", colorMap[color])}>
           {icon}
         </div>
-        <div className={clsx("flex items-center gap-1.5 sm:gap-2 rounded-xl px-3 sm:px-4 py-1.5 sm:py-2 text-[10px] font-bold uppercase tracking-widest shadow-sm", lightColorMap[color])}>
-          <ArrowUpRight className="h-3.5 w-3.5" />
+        <div className={clsx("flex items-center gap-1 rounded-lg px-2 sm:px-3 py-1 text-[9px] font-bold uppercase tracking-widest shadow-sm", colorMap[color])}>
+          <ArrowUpRight className="h-3 w-3" />
           {trend}
         </div>
       </div>
-      <div className="mt-6 sm:mt-10 relative z-10">
-        <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.3em]">{title}</p>
-        <h3 className="text-3xl sm:text-5xl font-bold text-foreground mt-2 sm:mt-3 tracking-tighter truncate">{value}</h3>
-        <p className="text-[10px] sm:text-xs text-muted-foreground mt-2 sm:mt-3 font-bold uppercase tracking-[0.2em] opacity-60 truncate">{subValue}</p>
+      <div className="mt-4 sm:mt-6 relative z-10">
+        <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-[0.3em]">{title}</p>
+        <h3 className="text-2xl sm:text-3xl font-bold text-foreground mt-1 sm:mt-2 tracking-tighter truncate">{value}</h3>
+        <p className="text-[9px] text-muted-foreground mt-1 sm:mt-2 font-bold uppercase tracking-[0.2em] opacity-60 truncate">{subValue}</p>
       </div>
-      
-      {/* Mini Chart Background */}
-      <div className="absolute bottom-0 inset-x-0 h-24 opacity-10 group-hover:opacity-20 transition-opacity">
-        <ResponsiveContainer width="100%" height="100%">
-          <AreaChart data={chartData}>
-            <Area 
-              type="monotone" 
-              dataKey="value" 
-              stroke={color === "emerald" ? "#10b981" : color === "blue" ? "#3b82f6" : color === "purple" ? "#a855f7" : "#f43f5e"} 
-              fill={color === "emerald" ? "#10b981" : color === "blue" ? "#3b82f6" : color === "purple" ? "#a855f7" : "#f43f5e"} 
-              strokeWidth={4}
-            />
-          </AreaChart>
-        </ResponsiveContainer>
-      </div>
-      
-      <div className={clsx("absolute bottom-0 inset-x-10 h-1.5 rounded-t-full opacity-0 group-hover:opacity-100 transition-opacity", colorMap[color])} />
     </motion.div>
   );
 }
 
-function QuickActionCard({ title, icon, color, onClick }: {title: string, icon: React.ReactNode, color: string, onClick: () => void}) {
+function QuickActionButton({ title, icon, color, onClick }: {
+  title: string
+  icon: React.ReactNode
+  color: string
+  onClick: () => void
+}) {
   const colorClasses: Record<string, string> = {
-    blue: "bg-blue-500/10 text-blue-600 group-hover:bg-blue-500 group-hover:text-white",
-    emerald: "bg-emerald-500/10 text-emerald-600 group-hover:bg-emerald-500 group-hover:text-white",
-    purple: "bg-purple-500/10 text-purple-600 group-hover:bg-purple-500 group-hover:text-white",
-    amber: "bg-amber-500/10 text-amber-600 group-hover:bg-amber-500 group-hover:text-white",
+    blue: "bg-blue-500/10 text-blue-600 hover:bg-blue-500 hover:text-white",
+    emerald: "bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500 hover:text-white",
+    purple: "bg-purple-500/10 text-purple-600 hover:bg-purple-500 hover:text-white",
+    amber: "bg-amber-500/10 text-amber-600 hover:bg-amber-500 hover:text-white",
+    slate: "bg-slate-500/10 text-slate-600 hover:bg-slate-500 hover:text-white",
   };
 
   return (
     <button 
       onClick={onClick}
-      className="group flex flex-col items-center justify-center gap-6 rounded-[2.5rem] border border-border bg-card p-8 shadow-xl hover:shadow-2xl transition-all hover:-translate-y-1"
+      className={clsx(
+        "group w-full flex items-center gap-3 rounded-lg border border-border p-3 transition-all hover:shadow-lg hover:-translate-y-0.5",
+        colorClasses[color]
+      )}
     >
-      <div className={clsx("h-16 w-16 rounded-2xl flex items-center justify-center transition-all duration-500 shadow-inner", colorClasses[color])}>
+      <div className="flex-shrink-0">
         {icon}
       </div>
-      <span className="text-xs font-bold text-foreground uppercase tracking-[0.2em] group-hover:text-primary transition-colors">{title}</span>
+      <span className="text-xs font-bold uppercase tracking-[0.1em] text-start flex-1">{title}</span>
+      <ArrowRight className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity" />
     </button>
   );
 }
 
-function FinancialRow({ label, value, currency, icon, color }: {label: string, value: number | string, currency?: string, icon: React.ReactNode, color: string}) {
+function FinancialRow({ label, value, currency, icon, color }: {
+  label: string
+  value: number | string
+  currency?: string
+  icon: React.ReactNode
+  color: string
+}) {
   const colorClasses: Record<string, string> = {
     emerald: "bg-emerald-500/10 text-emerald-600",
     orange: "bg-orange-500/10 text-orange-600",
@@ -473,16 +584,16 @@ function FinancialRow({ label, value, currency, icon, color }: {label: string, v
   };
 
   return (
-    <div className="group flex items-center justify-between p-3 rounded-2xl hover:bg-muted/50 transition-all border border-transparent hover:border-border">
-      <div className="flex items-center gap-5">
-        <div className={clsx("h-12 w-12 rounded-xl flex items-center justify-center transition-transform group-hover:scale-110 shadow-inner", colorClasses[color])}>
+    <div className="group flex items-center justify-between p-2.5 rounded-lg hover:bg-muted/50 transition-all border border-transparent hover:border-border">
+      <div className="flex items-center gap-2.5">
+        <div className={clsx("h-8 w-8 rounded-lg flex items-center justify-center transition-transform group-hover:scale-110 shadow-sm", colorClasses[color])}>
           {icon}
         </div>
-        <span className="text-xs font-bold text-muted-foreground uppercase tracking-[0.2em]">{label}</span>
+        <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-[0.2em]">{label}</span>
       </div>
       <div className="text-end">
-        <span className="text-xl font-bold text-foreground">{value}</span>
-        <span className="ms-2 text-[10px] font-bold text-muted-foreground uppercase tracking-widest">{currency}</span>
+        <span className="text-sm font-bold text-foreground">{value}</span>
+        <span className="ms-1 text-[9px] font-bold text-muted-foreground uppercase tracking-widest">{currency}</span>
       </div>
     </div>
   );
@@ -490,11 +601,10 @@ function FinancialRow({ label, value, currency, icon, color }: {label: string, v
 
 function ActivityIcon({ type }: { type: string }) {
   switch (type) {
-    case "INVOICE_CREATED": return <Receipt className="h-6 w-6" />;
-    case "APPOINTMENT_CREATED": return <CalendarDays className="h-6 w-6" />;
-    case "USER_CREATED": return <Users className="h-6 w-6" />;
-    case "EXPENSE_CREATED": return <Coins className="h-6 w-6" />;
-    default: return <List className="h-6 w-6" />;
+    case "INVOICE_CREATED": return <Receipt className="h-5 w-5" />;
+    case "APPOINTMENT_CREATED": return <CalendarDays className="h-5 w-5" />;
+    case "USER_CREATED": return <Users className="h-5 w-5" />;
+    case "EXPENSE_CREATED": return <Coins className="h-5 w-5" />;
+    default: return <List className="h-5 w-5" />;
   }
 }
-
