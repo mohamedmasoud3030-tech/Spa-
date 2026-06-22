@@ -1,115 +1,159 @@
 # CURRENT VERSION CLOSURE — v1.0
-**Release definition:** Single-customer, single-center Supabase PWA. Real auth. Real CRUD. Live QA verified. No fake mode.  
-**Code status:** ✅ Ready — all blockers are operational, not technical.
+**Release definition:** Single-customer, single-center Supabase PWA. Real auth. Real CRUD. Live Supabase QA verified. No fake mode.  
+**Primary gate:** Live Supabase connection must be established before any customer receives this product.
 
 ---
 
-## WHAT IS ALREADY DONE (verified from source)
+## WHAT IS ALREADY DONE ✅
 
 | Item | Evidence |
 |---|---|
-| Preview Mode removed | `BackendMode = "supabase"` only in `env.ts` · `src/infrastructure/preview/` deleted · `UserRole.PREVIEW` absent · Login page has no preview button |
-| Configuration guard | `parseEnv()` throws `EnvironmentConfigurationError` on missing/invalid config |
-| Core CRUD adapters | All 11 domain port interfaces implemented in `SupabaseAdapter` (repositories.ts) |
+| Preview Mode removed | `BackendMode = "supabase"` only · `src/infrastructure/preview/` deleted · `UserRole.PREVIEW` absent · Login page has no preview button |
+| Hard config guard | `parseEnv()` throws `EnvironmentConfigurationError` on missing/invalid env |
+| All core CRUD adapters | Implemented in `src/infrastructure/supabase/repositories.ts` |
 | TypeScript clean | `tsc --noEmit` → 0 errors |
 | Tests passing | `vitest run` → 74/74 |
 | Build passing | `npm run build` → clean PWA |
-| Supabase schema written | `docs/SUPABASE_BASE_SCHEMA_BOOTSTRAP.sql` finalized |
-| QA runbook written | `docs/SUPABASE_LIVE_QA_RUNBOOK.md` exists |
-| Preflight script | `npm run preflight:supabase` validates env before QA |
-| Acceptance checklist | `docs/MANUAL_PRE_SALE_ACCEPTANCE_CHECKLIST.md` exists |
+| Schema SQL written | `docs/SUPABASE_BASE_SCHEMA_BOOTSTRAP.sql` finalized |
+| QA runbook written | `docs/SUPABASE_LIVE_QA_RUNBOOK.md` |
+| Preflight script | `npm run preflight:supabase` |
+| Acceptance checklist | `docs/MANUAL_PRE_SALE_ACCEPTANCE_CHECKLIST.md` |
 
 ---
 
-## REMAINING BLOCKERS (operational — not code)
+## MANDATORY GATE — SUPABASE CONNECTION
 
-### BLOCKER 1 — No live Supabase environment exists
-**This is the only real blocker for v1.0.**
+**This gate must pass before any other v1.0 activity.**  
+Estimated time: 45–60 minutes (one sitting).
 
-Steps required (est. 45 minutes total):
+### Step 1 — Create Supabase Project (5 min)
+1. Go to https://supabase.com → sign in
+2. Click **"New Project"**
+3. Name: `spa-management-prod` (or your preferred name)
+4. Region: `eu-south-1` (closest to MENA) or choose your region
+5. DB password: generate a strong one, save it securely
+6. Wait for initialization (~5 min)
 
-1. **Create Supabase project** — https://supabase.com → New Project → choose MENA-closest region (e.g. `eu-south-1`)
-2. **Apply base schema** — SQL Editor → paste `docs/SUPABASE_BASE_SCHEMA_BOOTSTRAP.sql` → Run
-3. **Create admin user** — Authentication → Users → Add User (email + password, no invite)
-4. **Create center row:**
-   ```sql
-   INSERT INTO public.centers (id, name, currency, center_type)
-   VALUES (gen_random_uuid(), 'Test Salon', 'SAR', 'salon')
-   RETURNING id;
-   ```
-5. **Link user to center:**
-   ```sql
-   INSERT INTO public.center_memberships (user_id, center_id, role)
-   VALUES ('<user-id-from-auth>', '<center-id-from-above>', 'ADMIN');
-   ```
-6. **Configure `.env.local`** (NOT committed to Git):
-   ```
-   VITE_DATA_BACKEND=supabase
-   VITE_SUPABASE_URL=https://<ref>.supabase.co
-   VITE_SUPABASE_PUBLISHABLE_KEY=<anon-key>
-   VITE_CENTER_ID=<uuid-from-step-4>
-   VITE_BRANCH_MODE=single
-   ```
-7. **Run preflight:**
-   ```bash
-   npm run preflight:supabase
-   ```
+### Step 2 — Copy Credentials (2 min)
+In Supabase Dashboard → **Settings → API**:
+- Copy **Project URL** (e.g. `https://xxxx.supabase.co`)
+- Copy **anon/public key** (starts with `eyJ...`) — NOT the secret key
 
-**Acceptance:** Preflight passes. App boots. Login works.
+### Step 3 — Apply Base Schema (10 min)
+1. Supabase Dashboard → **SQL Editor** → New Query
+2. Paste entire contents of `docs/SUPABASE_BASE_SCHEMA_BOOTSTRAP.sql`
+3. Click **Run**
+4. Verify success:
+```sql
+SELECT table_name FROM information_schema.tables
+WHERE table_schema = 'public' ORDER BY table_name;
+```
+Expected: `appointments`, `center_memberships`, `centers`, `customers`, `employees`, `expenses`, `products`, `profiles`, `services`
+
+### Step 4 — Create Admin User (5 min)
+Supabase Dashboard → **Authentication → Users → Add User**:
+- Email: `admin@yoursalon.com`
+- Password: strong password (save it)
+- Do NOT auto-confirm invite — set password directly
+
+### Step 5 — Seed Center (5 min)
+SQL Editor → New Query:
+```sql
+-- Create the center
+INSERT INTO public.centers (id, name, currency, center_type)
+VALUES (gen_random_uuid(), 'My Salon', 'SAR', 'salon')
+RETURNING id;
+```
+Copy the returned UUID.
+
+```sql
+-- Link admin user to center (replace both UUIDs)
+INSERT INTO public.center_memberships (user_id, center_id, role)
+VALUES (
+  '<user-uuid-from-auth-dashboard>',
+  '<center-uuid-from-above>',
+  'ADMIN'
+);
+```
+
+### Step 6 — Configure Environment (5 min)
+Create `.env.local` in project root (this file is gitignored — never commit it):
+```
+VITE_DATA_BACKEND=supabase
+VITE_SUPABASE_URL=https://xxxxxxxxxxxx.supabase.co
+VITE_SUPABASE_PUBLISHABLE_KEY=eyJhbGc...
+VITE_CENTER_ID=<center-uuid-from-step-5>
+VITE_BRANCH_MODE=single
+```
+
+### Step 7 — Run Preflight (5 min)
+```bash
+npm run preflight:supabase
+```
+All checks must pass. If any fail, fix before proceeding.
+
+### Step 8 — Boot Verification (10 min)
+```bash
+npm run dev
+```
+Open http://localhost:5173
+- [ ] Login page loads (no config errors)
+- [ ] Login with admin credentials → dashboard appears
+- [ ] Page refresh → session restored, no re-login needed
+- [ ] Logout → redirected to login
+
+**Acceptance:** All 4 checks above pass. Supabase connection is live.
 
 ---
 
-### BLOCKER 2 — Live browser QA not performed
+## BLOCKER 2 — Full Live Browser QA
 
-Follow `docs/SUPABASE_LIVE_QA_RUNBOOK.md` exactly. Summary of scope:
+Follow `docs/SUPABASE_LIVE_QA_RUNBOOK.md` completely. Summary:
 
 **Auth**
-- [ ] Login (ADMIN) → dashboard
-- [ ] Login (STAFF) → dashboard, blocked from `/reports` and `/settings`
-- [ ] Session restored on page refresh
-- [ ] Logout clears session
+- [ ] ADMIN login / session restore / logout
+- [ ] STAFF login — blocked from `/reports` and `/settings`
+- [ ] Wrong credentials → error, not crash
 
-**Core CRUD (each must persist on reload)**
-- [ ] Customer: create, read, update, delete
-- [ ] Appointment: create, read, update, delete
-- [ ] Service: create, read, update, delete
-- [ ] Employee: create, read, update, delete
-- [ ] Product: create, read, update, delete
-- [ ] Expense: create, read, delete
+**Core CRUD — each must persist on page reload**
+- [ ] Customers: create, read, update, delete
+- [ ] Appointments: create, read, update (status), delete
+- [ ] Services: create, read, update, delete
+- [ ] Employees: create, read, update, delete
+- [ ] Products: create, read, update, delete
+- [ ] Expenses: create, read, delete
 
-**Dashboard**
-- [ ] Operational counts (customers, appointments, products) show real numbers
-- [ ] Financial metrics show "Backend Required" message — not crash
-
-**Reports**
-- [ ] Appointments report renders real data
+**Dashboard & Reports**
+- [ ] Operational counts show real numbers (not 0)
+- [ ] Appointment report renders real data
 - [ ] Inventory report renders real data
-- [ ] Sales report shows "Backend Required" — not crash
+- [ ] Financial metrics → "Backend Required" (not crash)
+- [ ] Sales report → "Backend Required" (not crash)
 
 **Error handling**
-- [ ] Network loss mid-operation → error state, not crash
-- [ ] All `BACKEND_METHOD_UNSUPPORTED` surfaces show localized warning
+- [ ] All `BACKEND_METHOD_UNSUPPORTED` surfaces show warning (not crash)
+- [ ] Network failure mid-operation → error state, recovers
 
 **RTL**
-- [ ] Arabic language switch → layout flips, no overflow
-- [ ] Tested on real Android device
-- [ ] Tested on real iOS device
+- [ ] Arabic language switch → layout flips correctly
+- [ ] Tested on real Android device (Chrome)
+- [ ] Tested on real iOS device (Safari)
 
-**Acceptance:** All items above checked off by a human. Signed in `MANUAL_PRE_SALE_ACCEPTANCE_CHECKLIST.md`.
+**Acceptance:** All items checked. Signed in `MANUAL_PRE_SALE_ACCEPTANCE_CHECKLIST.md`.
 
 ---
 
-### BLOCKER 3 — Customer deployment guide missing
+## BLOCKER 3 — Customer Deployment Guide
 
-Customers cannot self-onboard without documentation. File `docs/CUSTOMER_DEPLOYMENT_GUIDE.md` does not yet exist.
+File `docs/CUSTOMER_DEPLOYMENT_GUIDE.md` does not yet exist.
 
-**Must cover:**
-1. How to create a Supabase project
-2. How to apply the schema SQL
-3. How to create the first admin user
-4. How to deploy the web app (Vercel env vars or self-hosted)
-5. How to configure `VITE_CENTER_ID`
-6. First login walkthrough
+Must cover:
+1. Creating a Supabase project (with screenshots)
+2. Applying the schema SQL
+3. Creating first admin user + center
+4. Deploying the web app (Vercel env vars or self-hosted nginx)
+5. First login walkthrough
+6. Adding staff users
 
 ---
 
@@ -117,43 +161,42 @@ Customers cannot self-onboard without documentation. File `docs/CUSTOMER_DEPLOYM
 
 | Gate | Status |
 |---|---|
-| `tsc --noEmit` clean | ✅ Already passing |
-| `vitest run` 74/74 | ✅ Already passing |
-| `npm run build` clean | ✅ Already passing |
-| Preview Mode absent from `src/` | ✅ Already done |
-| Supabase base schema applied to staging | ❌ Pending |
-| Preflight passes against staging | ❌ Pending |
-| Live browser QA checklist signed off | ❌ Pending |
+| `tsc --noEmit` clean | ✅ |
+| `vitest run` 74/74 | ✅ |
+| `npm run build` clean | ✅ |
+| Preview Mode absent from `src/` | ✅ |
+| **Supabase project live + preflight passes** | ❌ **Primary blocker** |
+| **Full live QA signed off** | ❌ Pending Supabase |
 | Arabic RTL device-tested | ❌ Pending |
 | `MANUAL_PRE_SALE_ACCEPTANCE_CHECKLIST.md` signed | ❌ Pending |
 | `CUSTOMER_DEPLOYMENT_GUIDE.md` written | ❌ Pending |
 
 ---
 
-## OUT OF SCOPE FOR v1.0 (deferred to v1.1)
+## OUT OF SCOPE FOR v1.0
 
 | Feature | Reason |
 |---|---|
-| POS Checkout | Requires `SUPABASE_PHASE_10B_CHECKOUT_ACTIVATION.sql` applied to DB |
+| POS Checkout | Requires `SUPABASE_PHASE_10B_CHECKOUT_ACTIVATION.sql` — v1.1 |
 | Invoice print | Same dependency |
 | Financial dashboard (P&L, revenue) | Same dependency |
 | Sales reports | Same dependency |
 | Customer visit history | Same dependency |
-| Settings mutations (logo, update, backup) | Not yet implemented in adapter |
+| Settings mutations | Not yet implemented — v1.1 |
 | Expense edit UI | Contract exists; UI is v1.1 |
-| Bundle code-split | Performance, not correctness |
+| Bundle code-split | Performance — v1.1 |
 
 ---
 
-## TIMELINE ESTIMATE
+## TIMELINE
 
 | Step | Effort | Owner |
 |---|---|---|
 | Supabase setup + schema + seed | 1 hour | DevOps / DBA |
-| Preflight + app boot verification | 30 min | Engineer |
+| Preflight + boot verification | 30 min | Engineer |
 | Full live QA | 4–6 hours | QA |
-| Bug fixes (if any found) | 2–4 hours | Engineer |
+| Bug fixes if found | 2–4 hours | Engineer |
 | Write deployment guide | 3–4 hours | Engineer + PM |
-| Arabic device test | 2 hours | QA |
+| Arabic RTL device test | 2 hours | QA |
 | Sign-off | 30 min | Owner |
 | **Total** | **~2 weeks calendar** | Cross-functional |

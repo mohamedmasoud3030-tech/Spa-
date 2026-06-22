@@ -1,6 +1,6 @@
 # FINAL MASTER PLAN — SPA Management App
 **Branch:** docs-v1-v2-v3-source-of-truth  
-**Verified from:** `origin/main` commit 617b883 (live clone, June 2026)  
+**Verified from:** `origin/main` commit 69e0118 (June 2026)  
 **Roles:** Senior Product Architect · Full-Stack Auditor · Release Planning Engineer
 
 ---
@@ -9,29 +9,49 @@
 
 | # | Decision | Status |
 |---|---|---|
-| 1 | Preview Mode is **removed from the product entirely** — not toggled, not hidden, not valid as demo/fallback | ✅ Done in code (commit 3b60967) |
-| 2 | Missing configuration must produce a **hard blocking error screen**, not a fallback | ✅ `parseEnv()` throws `EnvironmentConfigurationError` |
-| 3 | `VITE_DATA_BACKEND=supabase` is the only valid backend mode | ✅ `BackendMode = "supabase"` in `env.ts` |
-| 4 | v1.0 = single-customer, single-center Supabase PWA | On track |
-| 5 | v1.1 = checkout, print, financial reports, settings mutations, expense edit UI, performance | Planned |
+| 1 | Preview Mode **completely removed** — not toggled, not hidden, not valid as demo/fallback | ✅ Done |
+| 2 | Missing configuration → **hard blocking error screen**, not fallback | ✅ Done |
+| 3 | **Live Supabase connection is mandatory before any version is delivered** | 🔴 Gate |
+| 4 | v1.0 = single-customer, single-center Supabase PWA | Pending QA |
+| 5 | v1.1 = checkout, print, financial reports, settings mutations, expense edit, code-split | Code-ready |
 | 6 | v2.0 = Windows Desktop EXE via Tauri v2 + SQLite — **documented only, not implemented** | Future |
-| 7 | Sales-ready = real auth + real CRUD + live QA verified — no fake mode | Pending QA |
+| 7 | Sales-ready = real auth + real CRUD + live Supabase QA verified — no fake mode | Pending |
 
 ---
 
-## BUILD HEALTH — VERIFIED FROM SOURCE
+## BUILD HEALTH (verified from source)
 
-| Check | Command | Result |
-|---|---|---|
-| TypeScript compile | `tsc --noEmit` | ✅ 0 errors |
-| Tests | `vitest run` | ✅ 74/74 passed (8 files) |
-| Production build | `npm run build` | ✅ Clean PWA output |
-| Bundle warning | build output | ⚠️ 1,325 kB single chunk — code-split in v1.1 |
-| Live browser QA | (not performed) | ❌ PENDING — blocking v1.0 release |
+| Check | Result |
+|---|---|
+| `tsc --noEmit` | ✅ 0 errors |
+| `vitest run` | ✅ 74/74 passed |
+| `npm run build` | ✅ Clean PWA output |
+| Bundle size | ⚠️ 1,325 kB single chunk — code-split in v1.1 |
+| Live Supabase QA | ❌ PENDING — primary delivery gate |
 
 ---
 
-## ARCHITECTURE (verified)
+## SUPABASE CONNECTION — MANDATORY DELIVERY GATE
+
+**No version is delivered to any customer until a live Supabase connection is established and QA verified.**
+
+This is not a soft recommendation. It is the primary release gate for v1.0.
+
+### What "connected" means
+
+| Requirement | Status |
+|---|---|
+| Supabase project created | ❌ Pending |
+| `SUPABASE_BASE_SCHEMA_BOOTSTRAP.sql` applied | ❌ Pending |
+| Admin user created and linked to center | ❌ Pending |
+| `.env` configured with real URL + anon key + center UUID | ❌ Pending |
+| `npm run preflight:supabase` passes | ❌ Pending |
+| App boots, login works, session persists | ❌ Pending |
+| Full CRUD QA verified (`SUPABASE_LIVE_QA_RUNBOOK.md`) | ❌ Pending |
+
+---
+
+## ARCHITECTURE (verified from source)
 
 | Aspect | Detail |
 |---|---|
@@ -39,36 +59,36 @@
 | Pattern | Clean Architecture: Domain Ports → Infrastructure Adapters → Use Cases → React Pages |
 | Auth | Supabase Auth only. Roles: `ADMIN` / `STAFF` / `MANAGER` |
 | Languages | English + Arabic RTL (i18next, ~600+ string keys) |
-| Multi-branch | Hard-blocked by design (`VITE_BRANCH_MODE=multi` rejected) |
 | Preview Mode | ✅ Completely removed from `src/` |
+| Multi-branch | Hard-blocked by design |
 
 ---
 
 ## FEATURE STATUS (from source inspection)
 
-### Core CRUD — Code Complete
+### Core CRUD — Code Complete, Live QA Pending
 
 | Module | C | R | U | D | Live QA |
 |---|---|---|---|---|---|
-| Customers | ✅ | ✅ | ✅ | ✅ | ❌ Pending |
-| Appointments | ✅ | ✅ | ✅ | ✅ | ❌ Pending |
-| Services | ✅ | ✅ | ✅ | ✅ | ❌ Pending |
-| Employees | ✅ | ✅ | ✅ | ✅ | ❌ Pending |
-| Products (Inventory) | ✅ | ✅ | ✅ | ✅ | ❌ Pending |
-| Expenses | ✅ | ✅ | ⚠️ stub | ✅ | ❌ Pending |
+| Customers | ✅ | ✅ | ✅ | ✅ | ❌ Pending Supabase |
+| Appointments | ✅ | ✅ | ✅ | ✅ | ❌ Pending Supabase |
+| Services | ✅ | ✅ | ✅ | ✅ | ❌ Pending Supabase |
+| Employees | ✅ | ✅ | ✅ | ✅ | ❌ Pending Supabase |
+| Products (Inventory) | ✅ | ✅ | ✅ | ✅ | ❌ Pending Supabase |
+| Expenses | ✅ | ✅ | ⚠️ UNSUPPORTED | ✅ | ❌ Pending Supabase |
 
-> **Expense.update:** Domain port and adapter exist. Adapter returns `BACKEND_METHOD_UNSUPPORTED`. Edit UI is v1.1 work.
+> **Expense.update:** Domain port + adapter exist (returns `BACKEND_METHOD_UNSUPPORTED`). Edit UI is v1.1 work.
 
-### Financial & POS — Code Complete, DB Schema Pending
+### Financial & POS — Code Complete, Phase 10B SQL Pending
 
-| Feature | Adapter | Status |
+| Feature | Adapter line | Status |
 |---|---|---|
-| Invoice.checkout | `SupabaseInvoiceAdapter.checkout` line 689 | ✅ Code done — requires Phase 10B SQL applied to DB |
-| Invoice.getForPrint | `SupabaseInvoiceAdapter.getForPrint` line 731 | ✅ Code done — requires Phase 10B SQL |
-| Dashboard.getPnlMonth | line 977 | ✅ Code done — requires Phase 10B SQL |
-| Dashboard.getRevenueLast7Days | line 1017 | ✅ Code done — requires Phase 10B SQL |
-| Report.getSales | line 1055 | ✅ Code done — requires Phase 10B SQL |
-| Customer.getHistory | line 244 | ✅ Code done — requires Phase 10B SQL |
+| `Invoice.checkout` | 689 | ✅ Code done — needs Phase 10B SQL + live QA |
+| `Invoice.getForPrint` | 731 | ✅ Code done — needs Phase 10B SQL |
+| `Dashboard.getPnlMonth` | 977 | ✅ Code done — needs Phase 10B SQL |
+| `Dashboard.getRevenueLast7Days` | 1017 | ✅ Code done — needs Phase 10B SQL |
+| `Report.getSales` | 1055 | ✅ Code done — needs Phase 10B SQL |
+| `Customer.getHistory` | 244 | ✅ Code done — needs Phase 10B SQL |
 
 ### Settings — Not Yet Implemented
 
@@ -80,60 +100,59 @@
 
 | File | Purpose | Status |
 |---|---|---|
-| `docs/SUPABASE_BASE_SCHEMA_BOOTSTRAP.sql` | v1.0 base tables + RLS | ✅ Final — **not yet applied to production** |
-| `docs/SUPABASE_PHASE_10B_CHECKOUT_ACTIVATION.sql` | invoices + invoice_items + process_checkout_v1 RPC | ✅ Final — **not yet applied to production** |
-| `docs/SUPABASE_STAGING_SEED_10A5.sql` | Staging seed data for QA | ✅ Ready |
-
-**Critical:** Neither SQL file has been applied to a real Supabase project yet. This is the primary blocker for v1.0.
+| `docs/SUPABASE_BASE_SCHEMA_BOOTSTRAP.sql` | v1.0 base tables + RLS | ✅ Final — **not yet applied** |
+| `docs/SUPABASE_PHASE_10B_CHECKOUT_ACTIVATION.sql` | invoices + checkout RPC | ✅ Final — v1.1, not yet applied |
+| `docs/SUPABASE_STAGING_SEED_10A5.sql` | Staging seed data | ✅ Ready |
 
 ---
 
 ## PHASE MODEL (locked)
 
 ```
-v1.0  ──  Single-customer Supabase PWA
-          Real auth · Real CRUD · Live QA verified
-          Preview Mode: REMOVED ✅
-          Status: Code ready — awaiting DB + QA
+v1.0  ── Single-customer Supabase PWA
+         ├─ GATE: Live Supabase connection verified  ← MUST HAPPEN FIRST
+         ├─ Real auth · Real CRUD · QA signed off
+         ├─ Preview Mode: REMOVED ✅
+         └─ Code: Ready. Blocker: Supabase setup + QA.
 
-v1.1  ──  Financial layer + Performance
-          Checkout · Print · Reports · Settings mutations
-          Expense edit UI · Bundle code-split
-          Status: Code ready — awaiting v1.0 release
+v1.1  ── Financial Layer + Performance
+         ├─ Requires: v1.0 released + Phase 10B SQL applied
+         ├─ Checkout · Print · Reports · Settings mutations
+         ├─ Expense edit UI · Bundle code-split
+         └─ All adapter code already written on main.
 
-v2.0  ──  Windows Desktop EXE
-          Tauri v2 + SQLite · Offline-first
-          Local auth · Local migrations · Backup/restore
-          Status: Documented only — do not implement yet
+v2.0  ── Windows Desktop EXE (Offline-First)
+         ├─ Requires: v1.1 stable in production
+         ├─ Tauri v2 + SQLite · Local auth · Local migrations
+         ├─ Backup/restore · Arabic RTL in WebView2
+         └─ DO NOT IMPLEMENT NOW — documented only.
 ```
 
 ---
 
-## TECH DEBT (verified from source)
+## TECH DEBT (verified)
 
 | Item | Severity | Phase |
 |---|---|---|
 | `Expense.update` UI missing (contract exists) | Medium | v1.1 |
-| Single JS bundle 1,325 kB | Medium | v1.1 code-split |
-| `sendReminder` is a silent stub returning `ok: true` | Low | v1.1 — implement or remove |
+| Single JS bundle 1,325 kB | Medium | v1.1 |
+| `sendReminder` is a silent stub returning `ok: true` | Low | v1.1 |
 | `getActivityFeed` returns hardcoded `[]` | Low | v1.1 |
-| Several page-level form states typed as `any` | Low | v1.1 cleanup |
 
 ---
 
-## IMMEDIATE NEXT ACTIONS
+## IMMEDIATE NEXT ACTIONS (ordered by priority)
 
-| # | Action | Blocks |
-|---|---|---|
-| 1 | Create staging Supabase project | All live QA |
-| 2 | Apply `SUPABASE_BASE_SCHEMA_BOOTSTRAP.sql` | v1.0 core QA |
-| 3 | Configure `.env.local` with staging credentials | App boot |
-| 4 | Run `npm run preflight:supabase` | QA readiness |
-| 5 | Execute `SUPABASE_LIVE_QA_RUNBOOK.md` | v1.0 release gate |
-| 6 | Write `CUSTOMER_DEPLOYMENT_GUIDE.md` | Sales handoff |
-| 7 | Arabic RTL test on real Android + iOS device | v1.0 acceptance |
-| 8 | Sign off `MANUAL_PRE_SALE_ACCEPTANCE_CHECKLIST.md` | v1.0 release |
-| 9 | Apply `SUPABASE_PHASE_10B_CHECKOUT_ACTIVATION.sql` | v1.1 start |
+| # | Action | Owner | Blocks |
+|---|---|---|---|
+| **1** | **Create Supabase project** | DevOps | Everything |
+| **2** | **Apply `SUPABASE_BASE_SCHEMA_BOOTSTRAP.sql`** | DBA | v1.0 QA |
+| **3** | **Configure `.env.local` + run preflight** | Engineer | App boot |
+| **4** | **Execute `SUPABASE_LIVE_QA_RUNBOOK.md`** | QA | v1.0 release |
+| 5 | Write `CUSTOMER_DEPLOYMENT_GUIDE.md` | Engineer | Sales handoff |
+| 6 | Arabic RTL test on real devices | QA | v1.0 acceptance |
+| 7 | Sign off `MANUAL_PRE_SALE_ACCEPTANCE_CHECKLIST.md` | Owner | v1.0 release |
+| 8 | Apply `SUPABASE_PHASE_10B_CHECKOUT_ACTIVATION.sql` | DBA | v1.1 start |
 
 ---
 
