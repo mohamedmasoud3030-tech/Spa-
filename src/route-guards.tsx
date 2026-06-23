@@ -1,13 +1,14 @@
 import { Navigate, Outlet, useLocation } from "react-router-dom";
 import { useAppContext } from "./context/AppContext";
 import { can } from "./domain/entities/Session";
+import { PageLoader } from "./shared/components/PageLoader";
 
 export function RequireAuth() {
   const { isInitialized, sessionState, user } = useAppContext();
   const location = useLocation();
 
   if (!isInitialized || sessionState.status === "loading") {
-    return <div className="min-h-screen flex items-center justify-center font-mono">Loading App...</div>;
+    return <PageLoader />;
   }
 
   // If there's an error and it's auth not configured, redirect to login so it shows the message
@@ -27,7 +28,7 @@ export function RequireAdmin() {
   const location = useLocation();
 
   if (!isInitialized || sessionState.status === "loading") {
-    return <div className="min-h-screen flex items-center justify-center font-mono">Loading App...</div>;
+    return <PageLoader />;
   }
 
   if (sessionState.status === "error" && sessionState.error.message.includes("not configured")) {

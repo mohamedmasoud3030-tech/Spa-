@@ -9,6 +9,22 @@ const resources = {
       // Dashboard
       
       // LoginPage
+      "Sign In": "تسجيل الدخول",
+      "Enter credentials to continue": "أدخل بياناتك للمتابعة",
+      "Username": "اسم المستخدم",
+      "Password": "كلمة المرور",
+      "Username is required": "اسم المستخدم مطلوب",
+      "Password is required": "كلمة المرور مطلوبة",
+      "Authentication not configured yet. Database setup required.": "لم يتم إعداد المصادقة بعد. يلزم إعداد قاعدة البيانات.",
+      "Login failed. Check your details.": "فشل تسجيل الدخول. تحقق من بياناتك.",
+      "MISSING_SINGLE_BRANCH_CENTER_ID": "VITE_CENTER_ID مفقود أو غير صالح.",
+      "UNSUPPORTED_BRANCH_CONFIGURATION": "إعداد الفرع غير مدعوم.",
+      "INVALID_SUPABASE_CONFIGURATION": "إعداد Supabase غير صالح. تحقق من URL والمفتاح.",
+      "MISSING_OR_INVALID_ROLE": "دور المستخدم غير صالح أو مفقود. تم رفض الوصول.",
+      "UNAUTHORIZED_ROLE": "دور غير مصرح. تم رفض الوصول.",
+      "UNAUTHORIZED_CENTER_MEMBERSHIP": "ليس لديك صلاحية الوصول إلى هذا المركز.",
+      "BACKEND_METHOD_UNSUPPORTED": "هذه الميزة تتطلب تنفيذ خلفية. (قيد التطوير)",
+      "Backend Required": "يلزم الخادم الخلفي",
 
       // POS
       

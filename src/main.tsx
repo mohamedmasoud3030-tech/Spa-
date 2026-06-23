@@ -4,12 +4,12 @@ import App from './App.tsx';
 import './index.css';
 import './i18n';
 
-const savedLang = localStorage.getItem("lenabeauty_lang") || "ar";
+const savedLang = localStorage.getItem("spa-lang") || "ar";
 document.documentElement.lang = savedLang;
 document.documentElement.dir = savedLang === "ar" ? "rtl" : "ltr";
 
 // Load theme from localStorage
-const savedTheme = localStorage.getItem("lenabeauty_theme");
+const savedTheme = localStorage.getItem("spa-theme");
 if (savedTheme === "light") {
   document.documentElement.classList.remove("dark");
 } else {
