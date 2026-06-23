@@ -1,5 +1,10 @@
 -- LenaBeauty Salon Management — Enable RLS and Add Policies
 -- This migration ensures cross-center isolation by enforcing center_id checks.
+-- Branch: fix/rls-center-isolation
+--
+-- Schema contract (from 20260623000001_initial_schema.sql):
+--   center_memberships columns: id, user_id, center_id, created_at
+--   NO profile_id column. NO is_active column.
 
 -- 1. Ensure app_private schema and helpers exist
 CREATE SCHEMA IF NOT EXISTS app_private;
@@ -17,13 +22,12 @@ END $$;
 ALTER TABLE public.center_memberships ADD COLUMN IF NOT EXISTS role public.member_role NOT NULL DEFAULT 'staff';
 
 -- Helper to get current user's authorized center IDs
--- Returns empty array instead of NULL for safer policy checks
--- Uses profile_id to match the base schema's naming convention
+-- Uses user_id (the actual column in center_memberships)
 CREATE OR REPLACE FUNCTION app_private.get_user_center_ids()
 RETURNS UUID[] AS $$
   SELECT COALESCE(array_agg(center_id), ARRAY[]::UUID[])
-  FROM public.center_memberships 
-  WHERE profile_id = auth.uid() AND is_active = true;
+  FROM public.center_memberships
+  WHERE user_id = auth.uid();
 $$ LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public, auth;
 
 -- Revoke public execution of the helper
@@ -35,9 +39,8 @@ CREATE OR REPLACE FUNCTION app_private.has_center_role(_center_id UUID, _roles p
 RETURNS BOOLEAN AS $$
   SELECT EXISTS (
     SELECT 1 FROM public.center_memberships
-    WHERE profile_id = auth.uid() 
-      AND center_id = _center_id 
-      AND is_active = true 
+    WHERE user_id = auth.uid()
+      AND center_id = _center_id
       AND role = ANY(_roles)
   );
 $$ LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public, auth;
@@ -61,22 +64,22 @@ ALTER TABLE invoice_items      ENABLE ROW LEVEL SECURITY;
 -- 3. Define Policies
 
 -- Centers: Users can only see centers they belong to
-CREATE POLICY "Users view centers they belong to" 
-ON public.centers FOR SELECT 
+CREATE POLICY "Users view centers they belong to"
+ON public.centers FOR SELECT
 USING (id = ANY(app_private.get_user_center_ids()));
 
 -- Memberships: Users can only see their own memberships
-CREATE POLICY "Users view their own memberships" 
-ON public.center_memberships FOR SELECT 
-USING (profile_id = auth.uid());
+CREATE POLICY "Users view their own memberships"
+ON public.center_memberships FOR SELECT
+USING (user_id = auth.uid());
 
 -- Center Settings: Only managers+ can update
-CREATE POLICY "Members view settings" 
-ON public.center_settings FOR SELECT 
+CREATE POLICY "Members view settings"
+ON public.center_settings FOR SELECT
 USING (center_id = ANY(app_private.get_user_center_ids()));
 
-CREATE POLICY "Managers update settings" 
-ON public.center_settings FOR UPDATE 
+CREATE POLICY "Managers update settings"
+ON public.center_settings FOR UPDATE
 USING (app_private.has_center_role(center_id, ARRAY['owner', 'admin', 'manager']::public.member_role))
 WITH CHECK (app_private.has_center_role(center_id, ARRAY['owner', 'admin', 'manager']::public.member_role));
 
@@ -155,7 +158,7 @@ USING (EXISTS (
 WITH CHECK (
     EXISTS (
         SELECT 1 FROM public.invoices i
-        WHERE i.id = invoice_id 
+        WHERE i.id = invoice_id
           AND i.center_id = ANY(app_private.get_user_center_ids())
           AND (service_id IS NULL OR EXISTS (SELECT 1 FROM public.services s WHERE s.id = service_id AND s.center_id = i.center_id))
           AND (product_id IS NULL OR EXISTS (SELECT 1 FROM public.products p WHERE p.id = product_id AND p.center_id = i.center_id))

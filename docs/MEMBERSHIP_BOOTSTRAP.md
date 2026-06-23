@@ -30,15 +30,14 @@ VALUES ('CENTER_ID', 'My Salon Name');
 
 - **No Client-Side Bypass**: There is no RPC or API endpoint that allows an un-membered user to join a center.
 - **Service Role Only**: Any automated provisioning must use the `service_role` key, which bypasses RLS.
-- **RLS Enforcement**: Once the first admin is provisioned, they can use the application to invite other members, as their existing membership will allow them to `INSERT` into `center_memberships` (provided a policy is added for that - currently policies only allow `SELECT`).
+- **RLS Enforcement**: Once the first admin is provisioned, all subsequent membership grants must also go through the Supabase Dashboard SQL Editor or a service-role key. There is no in-app invite workflow; the application does not expose an endpoint for granting memberships.
 
-## Inviting New Members (Admin Workflow)
+## Adding Further Members
 
-To allow admins to invite others, add this policy:
+All subsequent memberships are added the same way: via the Supabase Dashboard SQL Editor or a script using the service-role key. Replace `USER_UUID`, `CENTER_ID`, and `role` as appropriate:
 
 ```sql
-CREATE POLICY "Admins can manage memberships" ON public.center_memberships
-FOR ALL TO authenticated
-USING (app_private.has_center_role(center_id, ARRAY['owner', 'admin']::public.member_role))
-WITH CHECK (app_private.has_center_role(center_id, ARRAY['owner', 'admin']::public.member_role));
+INSERT INTO public.center_memberships (user_id, center_id, role)
+VALUES ('USER_UUID', 'CENTER_ID', 'staff')
+ON CONFLICT (user_id, center_id) DO UPDATE SET role = EXCLUDED.role;
 ```
