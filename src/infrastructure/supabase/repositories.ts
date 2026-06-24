@@ -183,8 +183,6 @@ class SupabaseCustomerAdapter implements CustomerRepository {
         notes: data.notes,
         total_spent: data.totalSpent,
         loyalty_points: data.loyaltyPoints,
-        // center_id is intentionally omitted, trusting the backend trigger or function to assign it if required.
-        // It's possible the current schema draft will cause this to fail if no default exists.
       };
 
       const { data: row, error } = await getSupabaseClient()
@@ -214,6 +212,9 @@ class SupabaseCustomerAdapter implements CustomerRepository {
       if (data.totalSpent !== undefined) payload.total_spent = data.totalSpent;
       if (data.loyaltyPoints !== undefined) payload.loyalty_points = data.loyaltyPoints;
       
+      // Explicitly delete center_id from payload if it exists to prevent tenant reassignment
+      delete payload.center_id;
+
       const { data: row, error } = await getSupabaseClient()
         .from('customers')
         .update(payload)
@@ -332,6 +333,8 @@ class SupabaseEmployeeAdapter implements EmployeeRepository {
       if (data.commissionPercentage !== undefined) payload.commission_percentage = data.commissionPercentage;
       if (data.isActive !== undefined) payload.is_active = data.isActive;
 
+      delete payload.center_id;
+
       const { data: row, error } = await getSupabaseClient()
         .from('employees')
         .update(payload)
@@ -421,6 +424,8 @@ class SupabaseServiceAdapter implements ServiceRepository {
       if (data.price !== undefined) payload.price = data.price;
       if (data.durationMinutes !== undefined) payload.duration_minutes = data.durationMinutes;
       if (data.isActive !== undefined) payload.is_active = data.isActive;
+
+      delete payload.center_id;
 
       const { data: row, error } = await getSupabaseClient()
         .from('services')
@@ -518,6 +523,8 @@ class SupabaseAppointmentAdapter implements AppointmentRepository {
       if (data.status !== undefined) payload.status = data.status;
       if (data.notes !== undefined) payload.notes = data.notes;
 
+      delete payload.center_id;
+
       const { data: row, error } = await getSupabaseClient()
         .from('appointments')
         .update(payload)
@@ -612,6 +619,8 @@ class SupabaseProductAdapter implements ProductRepository {
       if (data.price !== undefined) payload.price = data.price;
       if (data.cost !== undefined) payload.cost = data.cost;
 
+      delete payload.center_id;
+
       const { data: row, error } = await getSupabaseClient()
         .from('products')
         .update(payload)
@@ -699,6 +708,8 @@ class SupabaseExpenseAdapter implements ExpenseRepository {
       if (data.category !== undefined) payload.category = data.category;
       if (data.description !== undefined) payload.description = data.description;
       if (data.date !== undefined) payload.date = data.date.toISOString();
+
+      delete payload.center_id;
 
       const { data: row, error } = await getSupabaseClient()
         .from('expenses')
@@ -890,6 +901,8 @@ class SupabaseSettingsAdapter implements SettingsRepository {
       if (data.phone !== undefined) payload.phone = data.phone;
       if (data.cr !== undefined) payload.cr = data.cr;
       if (data.postalCode !== undefined) payload.postal_code = data.postalCode;
+
+      delete payload.center_id;
 
       const { data: row, error } = await getSupabaseClient()
         .from('center_settings')
