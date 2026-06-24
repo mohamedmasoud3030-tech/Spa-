@@ -1,4 +1,4 @@
-const CACHE_NAME = "kanzy-spa-v1";
+const CACHE_NAME = "lenabeauty-spa-v1";
 const ASSETS_TO_CACHE = [
   "/",
   "/index.html",

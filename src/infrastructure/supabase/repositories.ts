@@ -128,16 +128,22 @@ class SupabaseAuthAdapter implements AuthRepository {
 }
 
 class SupabaseCustomerAdapter implements CustomerRepository {
-  async list(_query?: string): Promise<Result<Customer[], DomainError>> {
+  async list(query?: string): Promise<Result<Customer[], DomainError>> {
     const centerRes = getCenterIdFor("Customer.list");
     if (!centerRes.ok) return centerRes as any;
     try {
-      const { data, error } = await getSupabaseClient()
+      let req = getSupabaseClient()
         .from('customers')
         .select('*')
         .eq('center_id', centerRes.data)
         .order('created_at', { ascending: false });
 
+      if (query && query.trim().length > 0) {
+        const q = query.trim();
+        req = req.or(`name.ilike.%${q}%,phone.ilike.%${q}%`);
+      }
+
+      const { data, error } = await req;
       if (error) return { ok: false, error: createQueryError("Customer.list", error.message) };
       return { ok: true, data: data.map(mapCustomer) };
     } catch (e: unknown) {

@@ -21,6 +21,26 @@ export interface AuthenticatedSession {
   user: User;
 }
 
+// Permissions granted to each role (additive — higher roles include lower ones).
+const MANAGER_PERMISSIONS = new Set([
+  "reports.view",
+  "settings.view",
+  "settings.update",
+]);
+
+const STAFF_PERMISSIONS = new Set([
+  "appointments.view",
+  "appointments.create",
+  "appointments.update",
+  "appointments.delete",
+  "customers.view",
+  "customers.create",
+  "customers.update",
+  "services.view",
+  "products.view",
+  "pos.checkout",
+]);
+
 export function can(sessionState: SessionState, permission: string): boolean {
   if (sessionState.status !== "authenticated") return false;
 
@@ -28,10 +48,13 @@ export function can(sessionState: SessionState, permission: string): boolean {
 
   if (role === UserRole.ADMIN) return true;
 
-  // Granular settings could go here
-  if (permission.startsWith("reports.") || permission.startsWith("settings.")) {
-    return role === UserRole.MANAGER;
+  if (role === UserRole.MANAGER) {
+    return MANAGER_PERMISSIONS.has(permission) || STAFF_PERMISSIONS.has(permission);
   }
 
-  return true;
+  if (role === UserRole.STAFF) {
+    return STAFF_PERMISSIONS.has(permission);
+  }
+
+  return false;
 }
