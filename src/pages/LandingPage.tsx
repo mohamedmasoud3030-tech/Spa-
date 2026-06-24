@@ -7,8 +7,15 @@ import {
 } from "lucide-react";
 
 export default function LandingPage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
+
+  const toggleLanguage = () => {
+    const nextLang = i18n.language === "ar" ? "en" : "ar";
+    i18n.changeLanguage(nextLang);
+    document.documentElement.lang = nextLang;
+    document.documentElement.dir = nextLang === "ar" ? "rtl" : "ltr";
+  };
 
   const features = [
     {
@@ -107,21 +114,21 @@ export default function LandingPage() {
 
   const testimonials = [
     {
-      name: "أحمد محمد",
-      salon: "صالون الفخامة",
-      text: "زيادة الإيرادات بنسبة 40% بعد استخدام التطبيق",
+      name: t("Ahmed Mohamed"),
+      salon: t("Luxury Salon"),
+      text: t("Revenue increased by 40% after using the app"),
       rating: 5
     },
     {
-      name: "فاطمة علي",
-      salon: "صالون الجمال",
-      text: "توفير 3 ساعات يومياً في إدارة العمليات",
+      name: t("Fatima Ali"),
+      salon: t("Beauty Salon"),
+      text: t("Saving 3 hours daily in operations management"),
       rating: 5
     },
     {
-      name: "محمود حسن",
-      salon: "صالون النجاح",
-      text: "أفضل استثمار قمت به لصالوني",
+      name: t("Mahmoud Hassan"),
+      salon: t("Success Salon"),
+      text: t("Best investment I made for my salon"),
       rating: 5
     }
   ];
@@ -157,12 +164,21 @@ export default function LandingPage() {
             </div>
             <span className="font-bold text-lg text-foreground">Lena Beauty</span>
           </div>
-          <button
-            onClick={() => navigate("/login")}
-            className="px-6 py-2.5 rounded-lg bg-primary text-primary-foreground font-bold text-sm uppercase tracking-widest hover:bg-primary/90 transition-all shadow-lg hover:shadow-xl"
-          >
-            {t("Sign In")}
-          </button>
+          <div className="flex items-center gap-4">
+            <button
+              onClick={toggleLanguage}
+              className="flex items-center gap-2 px-3 py-2 rounded-lg bg-muted/50 text-muted-foreground hover:bg-primary/10 hover:text-primary transition-all font-bold text-xs uppercase tracking-widest"
+            >
+              <Globe className="h-4 w-4" />
+              {i18n.language === "ar" ? "English" : "العربية"}
+            </button>
+            <button
+              onClick={() => navigate("/login")}
+              className="px-6 py-2.5 rounded-lg bg-primary text-primary-foreground font-bold text-sm uppercase tracking-widest hover:bg-primary/90 transition-all shadow-lg hover:shadow-xl"
+            >
+              {t("Sign In")}
+            </button>
+          </div>
         </div>
       </nav>
 
@@ -425,7 +441,7 @@ export default function LandingPage() {
               {t("Ready to Transform Your Salon?")}
             </h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              {t("Join hundreds of salon owners who are already growing their business with Lena Beauty")}
+              {t("Join 500+ successful salons growing their business with Lena Beauty.")}
             </p>
             <button
               onClick={() => navigate("/login")}
