@@ -525,6 +525,8 @@ const resources = {
       "Privacy Policy": "سياسة الخصوصية",
       "Terms of Service": "شروط الخدمة",
       "All rights reserved.": "جميع الحقوق محفوظة.",
+      "Developed by": "تطوير",
+      "Contact": "اتصال",
     }
   },
   en: {
@@ -1046,6 +1048,8 @@ const resources = {
       "Privacy Policy": "Privacy Policy",
       "Terms of Service": "Terms of Service",
       "All rights reserved.": "All rights reserved.",
+      "Developed by": "Developed by",
+      "Contact": "Contact",
     }
   }
 };

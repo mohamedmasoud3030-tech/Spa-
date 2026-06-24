@@ -457,8 +457,31 @@ export default function LandingPage() {
 
       {/* Footer */}
       <footer className="border-t border-border/20 bg-card/30 backdrop-blur-sm py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-6xl mx-auto text-center text-sm text-muted-foreground">
-          <p>&copy; 2026 Lena Beauty. {t("All rights reserved.")} | {t("Privacy Policy")} | {t("Terms of Service")}</p>
+        <div className="max-w-6xl mx-auto text-center space-y-6">
+          <div className="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-8 text-sm text-muted-foreground">
+            <p>&copy; 2026 Lena Beauty. {t("All rights reserved.")}</p>
+            <div className="flex gap-4">
+              <a href="#" className="hover:text-primary transition-colors">{t("Privacy Policy")}</a>
+              <a href="#" className="hover:text-primary transition-colors">{t("Terms of Service")}</a>
+            </div>
+          </div>
+          
+          <div className="pt-6 border-t border-border/10 flex flex-col items-center gap-3">
+            <p className="text-sm font-medium text-foreground">
+              {t("Developed by")} <span className="text-primary">Mohamed Masoud</span>
+            </p>
+            <div className="flex flex-wrap justify-center gap-x-6 gap-y-2 text-xs text-muted-foreground">
+              <a href="tel:+96891928186" className="flex items-center gap-1 hover:text-primary transition-colors">
+                <span className="opacity-70">{t("Contact")}:</span> +968 91928186
+              </a>
+              <a href="tel:+201212101073" className="flex items-center gap-1 hover:text-primary transition-colors">
+                +2 01212101073
+              </a>
+              <a href="mailto:mohamedms.oud@outlook.com" className="flex items-center gap-1 hover:text-primary transition-colors">
+                mohamedms.oud@outlook.com
+              </a>
+            </div>
+          </div>
         </div>
       </footer>
     </div>
