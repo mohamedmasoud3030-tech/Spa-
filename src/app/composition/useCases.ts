@@ -124,6 +124,8 @@ export const useCases = {
     getCenterInfo: () => getRepositoryBundle().bookingAdapter.getCenterInfo(),
     getTakenSlots: (dayISO: string) => getRepositoryBundle().bookingAdapter.getTakenSlots(dayISO),
     createBooking: (input: BookingInput) => getRepositoryBundle().bookingAdapter.createBooking(input),
+    cancelBooking: (input: { appointmentId: string; phone: string; token: string; reason?: string }) => getRepositoryBundle().bookingAdapter.cancelBooking(input),
+    rescheduleBooking: (input: { appointmentId: string; phone: string; token: string; newDateTimeISO: string; newEmployeeId?: string; reason?: string }) => getRepositoryBundle().bookingAdapter.rescheduleBooking(input),
     clientPortalLogin: (phone: string, token: string) => getRepositoryBundle().bookingAdapter.clientPortalLogin(phone, token),
     getClientPortalProfile: (customerId: string, phone: string, token: string) => getRepositoryBundle().bookingAdapter.getClientPortalProfile(customerId, phone, token),
   },

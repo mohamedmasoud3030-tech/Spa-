@@ -153,6 +153,8 @@ export interface BookingRepository {
   getCenterInfo(): Promise<Result<PublicCenterInfo, DomainError>>;
   getTakenSlots(dayISO: string): Promise<Result<{ dateTimeISO: string; employeeId?: string }[], DomainError>>;
   createBooking(input: BookingInput): Promise<Result<{ appointmentId: string }, DomainError>>;
+  cancelBooking(input: { appointmentId: string; phone: string; token: string; reason?: string }): Promise<Result<{ appointment: Appointment }, DomainError>>;
+  rescheduleBooking(input: { appointmentId: string; phone: string; token: string; newDateTimeISO: string; newEmployeeId?: string; reason?: string }): Promise<Result<{ appointment: Appointment }, DomainError>>;
   clientPortalLogin(phone: string, token: string): Promise<Result<ClientPortalSession, DomainError>>;
   getClientPortalProfile(customerId: string, phone: string, token: string): Promise<Result<ClientPortalProfile, DomainError>>;
 }

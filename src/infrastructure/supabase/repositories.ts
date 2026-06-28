@@ -1899,6 +1899,48 @@ class SupabaseBookingAdapter implements BookingRepository {
     }
   }
 
+  async cancelBooking(input: { appointmentId: string; phone: string; token: string; reason?: string }): Promise<Result<{ appointment: Appointment }, DomainError>> {
+    const centerRes = getCenterIdFor("Booking.cancelBooking");
+    if (!centerRes.ok) return centerRes as any;
+    try {
+      const { data, error } = await getSupabaseClient().rpc("public_cancel_booking_v1", {
+        p_center_id: centerRes.data,
+        p_appointment_id: input.appointmentId,
+        p_phone: input.phone,
+        p_portal_token: input.token,
+        p_reason: input.reason || null,
+      });
+      if (error) return { ok: false, error: createQueryError("Booking.cancelBooking", error.message) };
+      const row = (data || {}) as any;
+      if (!row.appointment) return { ok: false, error: createQueryError("Booking.cancelBooking", "Invalid response from booking cancel RPC") };
+      return { ok: true, data: { appointment: mapAppointment(row.appointment) } };
+    } catch (e: unknown) {
+      return { ok: false, error: createQueryError("Booking.cancelBooking", (e as Error).message) };
+    }
+  }
+
+  async rescheduleBooking(input: { appointmentId: string; phone: string; token: string; newDateTimeISO: string; newEmployeeId?: string; reason?: string }): Promise<Result<{ appointment: Appointment }, DomainError>> {
+    const centerRes = getCenterIdFor("Booking.rescheduleBooking");
+    if (!centerRes.ok) return centerRes as any;
+    try {
+      const { data, error } = await getSupabaseClient().rpc("public_reschedule_booking_v1", {
+        p_center_id: centerRes.data,
+        p_appointment_id: input.appointmentId,
+        p_phone: input.phone,
+        p_portal_token: input.token,
+        p_new_date_time: input.newDateTimeISO,
+        p_new_employee_id: input.newEmployeeId || null,
+        p_reason: input.reason || null,
+      });
+      if (error) return { ok: false, error: createQueryError("Booking.rescheduleBooking", error.message) };
+      const row = (data || {}) as any;
+      if (!row.appointment) return { ok: false, error: createQueryError("Booking.rescheduleBooking", "Invalid response from booking reschedule RPC") };
+      return { ok: true, data: { appointment: mapAppointment(row.appointment) } };
+    } catch (e: unknown) {
+      return { ok: false, error: createQueryError("Booking.rescheduleBooking", (e as Error).message) };
+    }
+  }
+
   async clientPortalLogin(phone: string, token: string): Promise<Result<any, DomainError>> {
     const centerRes = getCenterIdFor("Booking.clientPortalLogin");
     if (!centerRes.ok) return centerRes as any;

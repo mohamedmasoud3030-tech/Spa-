@@ -100,3 +100,5 @@
 10. `20260628000009_no_show_protection.sql`
 11. `20260628000010_notifications_payment_gateway.sql`
 12. `20260628000011_client_portal.sql`
+13. `20260628000012_customer_experience_forecasting_accounting_advanced.sql`
+14. `20260628000013_booking_reschedule_cancel.sql`
