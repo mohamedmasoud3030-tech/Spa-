@@ -21,6 +21,7 @@ interface CartItem {
   price: number;
   type: "service" | "product";
   cartId: string;
+  qty?: number;
   stockQuantity?: number;
   category?: string;
   brand?: string;
@@ -123,8 +124,14 @@ export default function PosInvoicesPage() {
     setUseLoyaltyPoints(false);
   }
 
-  const subtotal = cart.reduce((sum, item) => sum + Number(item.price), 0);
-  const loyaltyDiscount = useLoyaltyPoints && selectedCustomer ? Math.floor(selectedCustomer.loyaltyPoints / 100) : 0;
+  const subtotal = cart.reduce((sum, item) => sum + Number(item.price) * Number(item.qty ?? 1), 0);
+  // Mirror the server RPC (process_checkout_v1): 1 loyalty point = 1 OMR,
+  // capped at (subtotal - manual discount). Previously this used /100 which
+  // disagreed with the backend and showed the customer the wrong discount.
+  const loyaltyDiscount =
+    useLoyaltyPoints && selectedCustomer
+      ? Math.max(0, Math.min(subtotal - discount, selectedCustomer.loyaltyPoints))
+      : 0;
   const total = Math.max(0, subtotal - discount - loyaltyDiscount);
 
   async function handleCheckout() {
@@ -161,14 +168,14 @@ export default function PosInvoicesPage() {
             return {
               type: "service" as const,
               serviceId: it.id,
-              qty: 1,
+              qty: Number(it.qty ?? 1),
               price: Number(it.price)
             };
           } else {
             return {
               type: "product" as const,
               productId: it.id,
-              qty: 1,
+              qty: Number(it.qty ?? 1),
               price: Number(it.price)
             };
           }
@@ -572,7 +579,7 @@ export default function PosInvoicesPage() {
                 </div>
 
                 {/* Loyalty Points */}
-                {selectedCustomer && selectedCustomer.loyaltyPoints >= 100 && (
+                {selectedCustomer && selectedCustomer.loyaltyPoints > 0 && (
                   <motion.div 
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}

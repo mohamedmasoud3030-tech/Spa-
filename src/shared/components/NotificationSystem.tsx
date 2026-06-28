@@ -96,6 +96,7 @@ function NotificationDisplay({ notification, onClose }: NotificationDisplayProps
         </div>
         <button
           onClick={onClose}
+          aria-label="Close notification"
           className="flex-shrink-0 hover:opacity-70 transition-opacity"
         >
           <X className="h-4 w-4" />

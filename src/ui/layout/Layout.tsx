@@ -82,6 +82,7 @@ export default function Layout() {
             <div className="flex items-center gap-2 sm:gap-3 min-w-0">
               <button
                 onClick={() => setShowSidebar(true)}
+                aria-label={t("Open menu")}
                 className="lg:hidden h-10 w-10 rounded-lg bg-muted/50 flex items-center justify-center text-muted-foreground hover:bg-primary/10 hover:text-primary transition-all shadow-sm active:scale-95"
               >
                 <Menu className="h-5 w-5" />
