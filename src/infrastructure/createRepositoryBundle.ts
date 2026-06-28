@@ -10,7 +10,8 @@ import {
   InvoiceRepository,
   SettingsRepository,
   DashboardRepository,
-  ReportRepository
+  ReportRepository,
+  BookingRepository
 } from "../domain/ports/repositories";
 import {
   SupabaseAuthAdapter,
@@ -23,7 +24,8 @@ import {
   SupabaseInvoiceAdapter,
   SupabaseSettingsAdapter,
   SupabaseDashboardAdapter,
-  SupabaseReportAdapter
+  SupabaseReportAdapter,
+  SupabaseBookingAdapter
 } from "./supabase";
 
 export interface RepositoryBundle {
@@ -38,6 +40,7 @@ export interface RepositoryBundle {
   settingsAdapter: SettingsRepository;
   dashboardAdapter: DashboardRepository;
   reportAdapter: ReportRepository;
+  bookingAdapter: BookingRepository;
 }
 
 export class InfrastructureError extends Error {
@@ -60,7 +63,8 @@ export function createRepositoryBundle(): RepositoryBundle {
       invoiceAdapter: new SupabaseInvoiceAdapter(),
       settingsAdapter: new SupabaseSettingsAdapter(),
       dashboardAdapter: new SupabaseDashboardAdapter(),
-      reportAdapter: new SupabaseReportAdapter()
+      reportAdapter: new SupabaseReportAdapter(),
+      bookingAdapter: new SupabaseBookingAdapter()
     };
   }
 

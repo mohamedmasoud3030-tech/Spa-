@@ -1,7 +1,8 @@
 import { 
   AuthRepository, CustomerRepository, EmployeeRepository, ServiceRepository, 
   AppointmentRepository, ProductRepository, ExpenseRepository, InvoiceRepository, 
-  SettingsRepository, DashboardRepository, ReportRepository, Result, DomainError, AuthError 
+  SettingsRepository, DashboardRepository, ReportRepository, Result, DomainError, AuthError,
+  BookingRepository, BookingInput, PublicService, PublicStaff, PublicCenterInfo
 } from "../../domain/ports/repositories";
 import { 
   Customer, Employee, Service, Appointment, Product, Expense, Invoice, 
@@ -1346,6 +1347,92 @@ class SupabaseReportAdapter implements ReportRepository {
   }
 }
 
+class SupabaseBookingAdapter implements BookingRepository {
+  async listServices(): Promise<Result<PublicService[], DomainError>> {
+    const centerRes = getCenterIdFor("Booking.listServices");
+    if (!centerRes.ok) return centerRes as any;
+    try {
+      const { data, error } = await getSupabaseClient().rpc("public_list_services_v1", { p_center_id: centerRes.data });
+      if (error) return { ok: false, error: createQueryError("Booking.listServices", error.message) };
+      const rows = (data || []) as any[];
+      return { ok: true, data: rows.map((r) => ({
+        id: String(r.id), name: String(r.name), price: Number(r.price) || 0,
+        durationMinutes: Number(r.duration_minutes) || 30,
+      })) };
+    } catch (e: unknown) {
+      return { ok: false, error: createQueryError("Booking.listServices", (e as Error).message) };
+    }
+  }
+
+  async listStaff(): Promise<Result<PublicStaff[], DomainError>> {
+    const centerRes = getCenterIdFor("Booking.listStaff");
+    if (!centerRes.ok) return centerRes as any;
+    try {
+      const { data, error } = await getSupabaseClient().rpc("public_list_staff_v1", { p_center_id: centerRes.data });
+      if (error) return { ok: false, error: createQueryError("Booking.listStaff", error.message) };
+      const rows = (data || []) as any[];
+      return { ok: true, data: rows.map((r) => ({ id: String(r.id), name: String(r.name) })) };
+    } catch (e: unknown) {
+      return { ok: false, error: createQueryError("Booking.listStaff", (e as Error).message) };
+    }
+  }
+
+  async getCenterInfo(): Promise<Result<PublicCenterInfo, DomainError>> {
+    const centerRes = getCenterIdFor("Booking.getCenterInfo");
+    if (!centerRes.ok) return centerRes as any;
+    try {
+      const { data, error } = await getSupabaseClient().rpc("public_center_info_v1", { p_center_id: centerRes.data });
+      if (error) return { ok: false, error: createQueryError("Booking.getCenterInfo", error.message) };
+      const row = (Array.isArray(data) ? data[0] : data) as any;
+      if (!row) return { ok: false, error: { name: "DomainError", message: "Center not found", code: "NOT_FOUND" } };
+      return { ok: true, data: {
+        name: String(row.name ?? "Salon"), currency: String(row.currency ?? "OMR"),
+        phone: row.phone ?? undefined, address: row.address ?? undefined,
+      } };
+    } catch (e: unknown) {
+      return { ok: false, error: createQueryError("Booking.getCenterInfo", (e as Error).message) };
+    }
+  }
+
+  async getTakenSlots(dayISO: string): Promise<Result<{ dateTimeISO: string; employeeId?: string }[], DomainError>> {
+    const centerRes = getCenterIdFor("Booking.getTakenSlots");
+    if (!centerRes.ok) return centerRes as any;
+    try {
+      const { data, error } = await getSupabaseClient().rpc("public_taken_slots_v1", { p_center_id: centerRes.data, p_day: dayISO });
+      if (error) return { ok: false, error: createQueryError("Booking.getTakenSlots", error.message) };
+      const rows = (data || []) as any[];
+      return { ok: true, data: rows.map((r) => ({
+        dateTimeISO: new Date(r.date_time).toISOString(),
+        employeeId: r.employee_id ? String(r.employee_id) : undefined,
+      })) };
+    } catch (e: unknown) {
+      return { ok: false, error: createQueryError("Booking.getTakenSlots", (e as Error).message) };
+    }
+  }
+
+  async createBooking(input: BookingInput): Promise<Result<{ appointmentId: string }, DomainError>> {
+    const centerRes = getCenterIdFor("Booking.createBooking");
+    if (!centerRes.ok) return centerRes as any;
+    try {
+      const { data, error } = await getSupabaseClient().rpc("public_create_booking_v1", {
+        p_center_id: centerRes.data,
+        p_service_id: input.serviceId,
+        p_employee_id: input.employeeId || null,
+        p_customer_name: input.customerName,
+        p_customer_phone: input.customerPhone,
+        p_date_time: input.dateTimeISO,
+        p_notes: input.notes || null,
+      });
+      if (error) return { ok: false, error: createQueryError("Booking.createBooking", error.message) };
+      const row = (data || {}) as any;
+      if (!row.appointment_id) return { ok: false, error: createQueryError("Booking.createBooking", "Invalid response from booking RPC") };
+      return { ok: true, data: { appointmentId: String(row.appointment_id) } };
+    } catch (e: unknown) {
+      return { ok: false, error: createQueryError("Booking.createBooking", (e as Error).message) };
+    }
+  }
+}
+
 export {
   SupabaseAuthAdapter,
   SupabaseCustomerAdapter,
@@ -1357,5 +1444,6 @@ export {
   SupabaseInvoiceAdapter,
   SupabaseSettingsAdapter,
   SupabaseDashboardAdapter,
-  SupabaseReportAdapter
+  SupabaseReportAdapter,
+  SupabaseBookingAdapter
 };

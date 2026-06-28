@@ -1,5 +1,5 @@
 import { createRepositoryBundle } from "../../infrastructure/createRepositoryBundle";
-import { Result } from "../../domain/ports/repositories";
+import { Result, BookingInput } from "../../domain/ports/repositories";
 import { Appointment, Customer, Employee, Expense, Product, Service, CenterSettings, Invoice } from "../../domain/entities";
 import { CheckoutPayload, BackupPayload } from "../../application/dto";
 import { tenantContext, requireConfiguredCenterId } from "../../infrastructure/tenantContext";
@@ -88,6 +88,13 @@ export const useCases = {
     getSales: (f: string, t: string) => getRepositoryBundle().reportAdapter.getSales(f, t),
     getAppointments: (f: string, t: string) => getRepositoryBundle().reportAdapter.getAppointments(f, t),
     getInventory: () => getRepositoryBundle().reportAdapter.getInventory(),
+  },
+  booking: {
+    listServices: () => getRepositoryBundle().bookingAdapter.listServices(),
+    listStaff: () => getRepositoryBundle().bookingAdapter.listStaff(),
+    getCenterInfo: () => getRepositoryBundle().bookingAdapter.getCenterInfo(),
+    getTakenSlots: (dayISO: string) => getRepositoryBundle().bookingAdapter.getTakenSlots(dayISO),
+    createBooking: (input: BookingInput) => getRepositoryBundle().bookingAdapter.createBooking(input),
   },
   tenant: {
     setActiveCenterId: (id: string | null) => {

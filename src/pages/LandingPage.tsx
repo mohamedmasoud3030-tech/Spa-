@@ -173,6 +173,12 @@ export default function LandingPage() {
               {i18n.language === "ar" ? "English" : "العربية"}
             </button>
             <button
+              onClick={() => navigate("/book")}
+              className="px-4 sm:px-6 py-2.5 rounded-lg border border-primary/30 text-primary font-bold text-sm uppercase tracking-widest hover:bg-primary/10 transition-all"
+            >
+              {t("Book Now")}
+            </button>
+            <button
               onClick={() => navigate("/login")}
               className="px-6 py-2.5 rounded-lg bg-primary text-primary-foreground font-bold text-sm uppercase tracking-widest hover:bg-primary/90 transition-all shadow-lg hover:shadow-xl"
             >
