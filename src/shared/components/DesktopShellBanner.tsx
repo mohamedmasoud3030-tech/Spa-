@@ -1,4 +1,4 @@
-import { MonitorSmartphone, HardDriveDownload } from 'lucide-react';
+import { MonitorSmartphone, HardDriveDownload, HardDriveUpload, Printer, DatabaseZap } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { desktopShellConfig, isDesktopShell } from '../../desktop/config';
 
@@ -17,8 +17,11 @@ export function DesktopShellBanner() {
           <p className="text-muted-foreground">
             {t('The Tauri desktop foundation is prepared with offline-first and SQLite-ready architecture.')}
           </p>
-          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-            <HardDriveDownload className="h-4 w-4" />
+          <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
+            <span className="inline-flex items-center gap-1"><HardDriveDownload className="h-4 w-4" />{t('Backup')}</span>
+            <span className="inline-flex items-center gap-1"><HardDriveUpload className="h-4 w-4" />{t('Restore')}</span>
+            <span className="inline-flex items-center gap-1"><Printer className="h-4 w-4" />{t('Print')}</span>
+            <span className="inline-flex items-center gap-1"><DatabaseZap className="h-4 w-4" />SQLite</span>
             <span>{desktopShellConfig.productName}</span>
           </div>
         </div>

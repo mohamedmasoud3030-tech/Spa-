@@ -3,7 +3,7 @@
 
 وثيقة حيّة تتعقّب: ما تم إنجازه، وما تبقّى، والمراحل القادمة. تُحدَّث مع كل دفعة.
 
-الحالة التقنية الحالية: `tsc --strict` = 0 أخطاء · **161 اختبار ناجح** · بناء PWA نظيف + Tauri foundation جاهزة (فحص Rust مؤجل لغياب cargo في البيئة).
+الحالة التقنية الحالية: `tsc --strict` = 0 أخطاء · **170 اختبار ناجح** · بناء PWA نظيف + Tauri desktop foundation متقدمة (SQLite/backup/restore/print bridges) مع بقاء `cargo check` مؤجلًا لغياب Rust toolchain في البيئة.
 
 ---
 
@@ -75,7 +75,7 @@
 ### مرحلة متقدمة (تمايز 2026)
 - [x] **روبوت حجز بالذكاء الاصطناعي** (أساس leads + intake)
 - [ ] **توصيات خدمات ذكية**
-- [ ] **نسخة سطح المكتب (Tauri v2 + SQLite)** — موثّقة، غير مبدوءة
+- [x] **نسخة سطح المكتب (Tauri v2 + SQLite)** — تم إنشاء Tauri desktop foundation متقدمة داخل المستودع مع Rust shell/config/tests/preflight + bridges لـ SQLite/backup/restore/print، ويبقى فقط build/final packaging على جهاز يحتوي Rust/Tauri toolchain
 
 ---
 
@@ -100,7 +100,4 @@
 10. `20260628000009_no_show_protection.sql`
 11. `20260628000010_notifications_payment_gateway.sql`
 12. `20260628000011_client_portal.sql`
-13. `20260628000012_customer_experience_forecasting_accounting_advanced.sql`
-14. `20260628000013_booking_reschedule_cancel.sql`
-ience_forecasting_accounting_advanced.sql`
-14. `20260628000013_booking_reschedule_cancel.sql`
+13. `20260628000012_customer_exper

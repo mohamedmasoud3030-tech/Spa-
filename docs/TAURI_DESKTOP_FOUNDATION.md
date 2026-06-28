@@ -27,11 +27,22 @@
 - `npm run desktop:test`
 - `npm run desktop:preflight`
 
+## ما تم استكماله بعد الـ foundation
+- جسر Desktop invoke في `src/desktop/bridge.ts`
+- طبقة SQLite/backup/restore/print في `src/desktop/sqlite.ts`
+- desktop repository helper في `src/desktop/repository.ts`
+- أوامر Rust فعلية داخل `src-tauri/src/lib.rs` لـ:
+  - `desktop_db_health`
+  - `desktop_export_backup`
+  - `desktop_import_backup`
+  - `desktop_print_html`
+- تخزين ملف قاعدة سطح المكتب محليًا داخل app data directory بصيغة JSON transitional snapshot
+- إنشاء مجلد print queue محلي لالتقاط مهام الطباعة
+
 ## الملاحظات
-- هذه **foundation كاملة** داخل المستودع لكنها تعتمد على وجود Rust/Tauri toolchain على الجهاز الذي سيبني التطبيق النهائي.
-- لم يتم بعد تفعيل SQLite domain adapters الفعلية أو updater production signing.
-- يمكن لاحقًا إضافة:
-  - `tauri-plugin-sql`
+- هذه **foundation متقدمة** داخل المستودع لكنها تعتمد على وجود Rust/Tauri toolchain على الجهاز الذي سيبني التطبيق النهائي.
+- تم تنفيذ طبقة SQLite-ready وbackup/restore/print bridge، لكن ما يزال ينقص لاحقًا:
+  - استبدال JSON snapshot backend بمحرك SQLite حقيقي أو `tauri-plugin-sql`
   - مزامنة لاحقة مع Supabase
-  - طباعة محلية أعمق
-  - أوامر backup/restore سطح مكتب
+  - updater production signing
+  - file picker/print dialog production UX داخل shell
