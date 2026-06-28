@@ -203,6 +203,107 @@ export interface ClientPortalSession {
   portalLastLoginAtISO?: string;
 }
 
+
+export interface PortalReviewDto {
+  id: string;
+  appointmentId?: string;
+  rating: number;
+  comment?: string;
+  isPublished: boolean;
+  createdAtISO: string;
+}
+
+export interface PortalServiceFileImageDto {
+  id: string;
+  imageKind: "BEFORE" | "AFTER" | "REFERENCE";
+  imageUrl: string;
+  sortOrder: number;
+  createdAtISO: string;
+}
+
+export interface PortalServiceFileDto {
+  id: string;
+  appointmentId?: string;
+  serviceId?: string;
+  title: string;
+  note?: string;
+  createdAtISO: string;
+  images: PortalServiceFileImageDto[];
+}
+
+export interface PortalNotificationEventDto {
+  id: string;
+  appointmentId?: string;
+  channel: string;
+  direction: string;
+  templateKey?: string;
+  messagePreview: string;
+  deliveryStatus: string;
+  sentAtISO?: string;
+  createdAtISO: string;
+}
+
+export interface PortalReferralDto {
+  code?: string;
+  pointsEarned: number;
+}
+
+export interface CreateCustomerReviewInput {
+  customerId: string;
+  appointmentId?: string;
+  rating: number;
+  comment?: string;
+  isPublished?: boolean;
+}
+
+export interface CreateServiceFileInput {
+  customerId: string;
+  appointmentId?: string;
+  serviceId?: string;
+  title: string;
+  note?: string;
+  beforeImages?: string[];
+  afterImages?: string[];
+  referenceImages?: string[];
+}
+
+export interface CreateJournalEntryInput {
+  entryDateISO?: string;
+  entryType: "SALE" | "EXPENSE" | "PAYROLL" | "ADJUSTMENT" | "TRANSFER";
+  referenceType?: string;
+  referenceId?: string;
+  description: string;
+  debitAccount: string;
+  creditAccount: string;
+  amount: number;
+  currency?: string;
+}
+
+export interface CreateAiBookingLeadInput {
+  customerName: string;
+  customerPhone?: string;
+  preferredServiceId?: string;
+  preferredDateISO?: string;
+  sourceChannel?: "WEB" | "WHATSAPP" | "INSTAGRAM" | "PHONE" | "OTHER";
+  summary?: string;
+}
+
+export interface InventoryForecastRow {
+  productId: string;
+  productName: string;
+  stockQuantity: number;
+  averageDailyUnits: number;
+  daysRemaining: number;
+  reorderAlert: boolean;
+}
+
+export interface FinancialForecastSummary {
+  projectedMonthlyRevenue: number;
+  projectedMonthlyExpenses: number;
+  projectedMonthlyProfit: number;
+  revenueRunRateDaily: number;
+}
+
 export interface ClientPortalProfile {
   customer: {
     id: string;
@@ -235,4 +336,8 @@ export interface ClientPortalProfile {
     tax: number;
     paymentMethod: string;
   }[];
+  reviews: PortalReviewDto[];
+  serviceFiles: PortalServiceFileDto[];
+  notificationTimeline: PortalNotificationEventDto[];
+  referral?: PortalReferralDto;
 }

@@ -201,6 +201,86 @@ export interface NotificationSettingsEntity {
   updatedAt: Date;
 }
 
+
+export interface CustomerReview {
+  id: string;
+  centerId: string;
+  customerId: string;
+  appointmentId?: string;
+  rating: number;
+  comment?: string;
+  isPublished: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface ServiceFileImage {
+  id: string;
+  centerId: string;
+  serviceFileId: string;
+  imageKind: "BEFORE" | "AFTER" | "REFERENCE";
+  imageUrl: string;
+  sortOrder: number;
+  createdAt: Date;
+}
+
+export interface ServiceFile {
+  id: string;
+  centerId: string;
+  customerId: string;
+  appointmentId?: string;
+  serviceId?: string;
+  title: string;
+  note?: string;
+  createdAt: Date;
+  updatedAt: Date;
+  images?: ServiceFileImage[];
+}
+
+export interface CustomerNotificationEvent {
+  id: string;
+  centerId: string;
+  customerId: string;
+  appointmentId?: string;
+  channel: "WHATSAPP" | "SMS" | "EMAIL" | "SYSTEM";
+  direction: "OUTBOUND" | "INBOUND";
+  templateKey?: string;
+  messagePreview: string;
+  deliveryStatus: "QUEUED" | "SENT" | "DELIVERED" | "FAILED" | "READ";
+  sentAt?: Date;
+  createdAt: Date;
+}
+
+export interface AccountingJournalEntry {
+  id: string;
+  centerId: string;
+  entryDate: Date;
+  entryType: "SALE" | "EXPENSE" | "PAYROLL" | "ADJUSTMENT" | "TRANSFER";
+  referenceType?: string;
+  referenceId?: string;
+  description: string;
+  debitAccount: string;
+  creditAccount: string;
+  amount: number;
+  currency: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface AiBookingLead {
+  id: string;
+  centerId: string;
+  customerName: string;
+  customerPhone?: string;
+  preferredServiceId?: string;
+  preferredDate?: Date;
+  sourceChannel: "WEB" | "WHATSAPP" | "INSTAGRAM" | "PHONE" | "OTHER";
+  status: "NEW" | "QUALIFIED" | "BOOKED" | "CLOSED";
+  summary?: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 export interface PaymentGatewaySettings {
   id: string;
   centerId: string;

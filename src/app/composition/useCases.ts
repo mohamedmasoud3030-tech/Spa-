@@ -1,7 +1,7 @@
 import { createRepositoryBundle } from "../../infrastructure/createRepositoryBundle";
 import { Result, BookingInput } from "../../domain/ports/repositories";
 import { Appointment, Customer, Employee, Expense, Product, Service, CenterSettings } from "../../domain/entities";
-import { CheckoutPayload, BackupPayload, IssueGiftCardInput, CreateServicePackageInput, NotificationSettingsInput, PaymentGatewaySettingsInput } from "../../application/dto";
+import { CheckoutPayload, BackupPayload, IssueGiftCardInput, CreateServicePackageInput, NotificationSettingsInput, PaymentGatewaySettingsInput, CreateCustomerReviewInput, CreateServiceFileInput, CreateJournalEntryInput, CreateAiBookingLeadInput } from "../../application/dto";
 import { tenantContext, requireConfiguredCenterId, setActiveCenter } from "../../infrastructure/tenantContext";
 
 type RepositoryBundle = ReturnType<typeof createRepositoryBundle>;
@@ -98,6 +98,26 @@ export const useCases = {
     getAppointments: (f: string, t: string) => getRepositoryBundle().reportAdapter.getAppointments(f, t),
     getInventory: () => getRepositoryBundle().reportAdapter.getInventory(),
   },
+
+  customerExperience: {
+    listReviews: () => getRepositoryBundle().customerExperienceAdapter.listReviews(),
+    createReview: (input: CreateCustomerReviewInput) => getRepositoryBundle().customerExperienceAdapter.createReview(input),
+    listServiceFiles: (customerId?: string) => getRepositoryBundle().customerExperienceAdapter.listServiceFiles(customerId),
+    createServiceFile: (input: CreateServiceFileInput) => getRepositoryBundle().customerExperienceAdapter.createServiceFile(input),
+  },
+  forecasts: {
+    getInventoryForecast: () => getRepositoryBundle().forecastAdapter.getInventoryForecast(),
+    getFinancialForecast: () => getRepositoryBundle().forecastAdapter.getFinancialForecast(),
+  },
+  accounting: {
+    listJournalEntries: () => getRepositoryBundle().accountingAdapter.listJournalEntries(),
+    createJournalEntry: (input: CreateJournalEntryInput) => getRepositoryBundle().accountingAdapter.createJournalEntry(input),
+  },
+  advanced: {
+    listAiBookingLeads: () => getRepositoryBundle().advancedAdapter.listAiBookingLeads(),
+    createAiBookingLead: (input: CreateAiBookingLeadInput) => getRepositoryBundle().advancedAdapter.createAiBookingLead(input),
+  },
+
   booking: {
     listServices: () => getRepositoryBundle().bookingAdapter.listServices(),
     listStaff: () => getRepositoryBundle().bookingAdapter.listStaff(),

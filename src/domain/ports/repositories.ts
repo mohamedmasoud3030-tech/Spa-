@@ -1,7 +1,7 @@
 import {
   Customer, Employee, Service, ServiceCategory,
   Appointment, Product, Invoice, Expense, ActivityLog, CenterSettings, GiftCard, GiftCardTransaction, ServicePackage,
-  NotificationSettingsEntity, PaymentGatewaySettings
+  NotificationSettingsEntity, PaymentGatewaySettings, CustomerReview, ServiceFile, AccountingJournalEntry, AiBookingLead
 } from "../entities";
 import { User, SessionState } from "../entities/Session";
 
@@ -69,7 +69,7 @@ export interface ExpenseRepository {
   delete(id: string): Promise<Result<void, DomainError>>;
 }
 
-import { CheckoutPayload, InvoicePrintData, DashboardSummary, PnlData, ChartData, SalesReportRow, AppointmentReportRow, InventoryReportRow, BackupPayload, ClientPortalSession, ClientPortalProfile } from "../../application/dto";
+import { CheckoutPayload, InvoicePrintData, DashboardSummary, PnlData, ChartData, SalesReportRow, AppointmentReportRow, InventoryReportRow, BackupPayload, ClientPortalSession, ClientPortalProfile, CreateCustomerReviewInput, CreateServiceFileInput, CreateJournalEntryInput, CreateAiBookingLeadInput, InventoryForecastRow, FinancialForecastSummary } from "../../application/dto";
 
 export interface InvoiceRepository {
   checkout(payload: CheckoutPayload): Promise<Result<{ invoice: Invoice, total: number, earned: number }, DomainError>>;
@@ -122,6 +122,29 @@ export interface BookingInput {
   customerPhone: string;
   dateTimeISO: string;
   notes?: string;
+}
+
+
+export interface CustomerExperienceRepository {
+  listReviews(): Promise<Result<CustomerReview[], DomainError>>;
+  createReview(input: CreateCustomerReviewInput): Promise<Result<CustomerReview, DomainError>>;
+  listServiceFiles(customerId?: string): Promise<Result<ServiceFile[], DomainError>>;
+  createServiceFile(input: CreateServiceFileInput): Promise<Result<ServiceFile, DomainError>>;
+}
+
+export interface ForecastRepository {
+  getInventoryForecast(): Promise<Result<InventoryForecastRow[], DomainError>>;
+  getFinancialForecast(): Promise<Result<FinancialForecastSummary, DomainError>>;
+}
+
+export interface AccountingRepository {
+  listJournalEntries(): Promise<Result<AccountingJournalEntry[], DomainError>>;
+  createJournalEntry(input: CreateJournalEntryInput): Promise<Result<AccountingJournalEntry, DomainError>>;
+}
+
+export interface AdvancedRepository {
+  listAiBookingLeads(): Promise<Result<AiBookingLead[], DomainError>>;
+  createAiBookingLead(input: CreateAiBookingLeadInput): Promise<Result<AiBookingLead, DomainError>>;
 }
 
 export interface BookingRepository {

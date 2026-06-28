@@ -30,6 +30,10 @@ import {
   ChevronDown,
   Sparkles,
   Gift,
+  Bot,
+  GalleryVerticalEnd,
+  TrendingUp,
+  BookOpenCheck,
 } from "lucide-react";
 import { clsx } from "clsx";
 import { useAuth } from "../../auth";
@@ -61,6 +65,8 @@ const navGroups: NavGroup[] = [
       { to: "/customers", labelKey: "Customers", Icon: Users },
       { to: "/gift-cards", labelKey: "Gift Cards", Icon: Gift },
       { to: "/packages", labelKey: "Packages", Icon: Boxes },
+      { to: "/customer-experience", labelKey: "Customer Experience", Icon: GalleryVerticalEnd },
+      { to: "/forecasting", labelKey: "Forecasting", Icon: TrendingUp },
     ],
   },
   {
@@ -90,6 +96,8 @@ const navGroups: NavGroup[] = [
       { to: "/branding", labelKey: "Branding", Icon: Palette, adminOnly: true },
       { to: "/notifications", labelKey: "Notifications", Icon: Bell, adminOnly: true },
       { to: "/payment-gateway", labelKey: "Payment Gateway", Icon: CreditCard, adminOnly: true },
+      { to: "/accounting", labelKey: "Accounting", Icon: BookOpenCheck, adminOnly: true },
+      { to: "/advanced-automation", labelKey: "Advanced Automation", Icon: Bot, adminOnly: true },
       { to: "/settings", labelKey: "Settings", Icon: Settings, adminOnly: true },
     ],
   },

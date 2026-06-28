@@ -1,7 +1,7 @@
 import { 
   Customer, Employee, Service, Appointment, Product, Expense, Invoice, InvoiceItem, CenterSettings,
   AppointmentStatus, GiftCard, GiftCardTransaction, ServicePackage, ServicePackageItem,
-  NotificationSettingsEntity, PaymentGatewaySettings
+  NotificationSettingsEntity, PaymentGatewaySettings, CustomerReview, ServiceFile, ServiceFileImage, CustomerNotificationEvent, AccountingJournalEntry, AiBookingLead
 } from "../../domain/entities";
 import { UserRole, SessionState, AuthenticatedSession } from "../../domain/entities/Session";
 import { createMappingError } from "./errors";
@@ -369,5 +369,121 @@ export function mapServicePackage(row: unknown): ServicePackage {
     items,
     createdAt: parseDate(row.created_at, "created_at", "mapServicePackage"),
     updatedAt: parseDate(row.updated_at, "updated_at", "mapServicePackage")
+  };
+}
+
+
+export function mapCustomerReview(row: unknown): CustomerReview {
+  assertRowObject(row, "mapCustomerReview");
+  if (typeof row.id !== "string" || typeof row.center_id !== "string" || typeof row.customer_id !== "string") {
+    throw createMappingError("mapCustomerReview", "Missing or invalid required fields (id, center_id, customer_id)");
+  }
+  return {
+    id: row.id,
+    centerId: row.center_id,
+    customerId: row.customer_id,
+    appointmentId: typeof row.appointment_id === "string" ? row.appointment_id : undefined,
+    rating: Number(row.rating) || 0,
+    comment: typeof row.comment === "string" ? row.comment : undefined,
+    isPublished: Boolean(row.is_published),
+    createdAt: parseDate(row.created_at, "created_at", "mapCustomerReview"),
+    updatedAt: parseDate(row.updated_at, "updated_at", "mapCustomerReview"),
+  };
+}
+
+export function mapServiceFileImage(row: unknown): ServiceFileImage {
+  assertRowObject(row, "mapServiceFileImage");
+  if (typeof row.id !== "string" || typeof row.center_id !== "string" || typeof row.service_file_id !== "string" || typeof row.image_url !== "string") {
+    throw createMappingError("mapServiceFileImage", "Missing or invalid required fields");
+  }
+  return {
+    id: row.id,
+    centerId: row.center_id,
+    serviceFileId: row.service_file_id,
+    imageKind: (typeof row.image_kind === "string" ? row.image_kind : "REFERENCE") as any,
+    imageUrl: row.image_url,
+    sortOrder: Number(row.sort_order) || 0,
+    createdAt: parseDate(row.created_at, "created_at", "mapServiceFileImage"),
+  };
+}
+
+export function mapServiceFile(row: unknown): ServiceFile {
+  assertRowObject(row, "mapServiceFile");
+  if (typeof row.id !== "string" || typeof row.center_id !== "string" || typeof row.customer_id !== "string" || typeof row.title !== "string") {
+    throw createMappingError("mapServiceFile", "Missing or invalid required fields");
+  }
+  return {
+    id: row.id,
+    centerId: row.center_id,
+    customerId: row.customer_id,
+    appointmentId: typeof row.appointment_id === "string" ? row.appointment_id : undefined,
+    serviceId: typeof row.service_id === "string" ? row.service_id : undefined,
+    title: row.title,
+    note: typeof row.note === "string" ? row.note : undefined,
+    createdAt: parseDate(row.created_at, "created_at", "mapServiceFile"),
+    updatedAt: parseDate(row.updated_at, "updated_at", "mapServiceFile"),
+    images: Array.isArray(row.images) ? row.images.map(mapServiceFileImage) : undefined,
+  };
+}
+
+export function mapCustomerNotificationEvent(row: unknown): CustomerNotificationEvent {
+  assertRowObject(row, "mapCustomerNotificationEvent");
+  if (typeof row.id !== "string" || typeof row.center_id !== "string" || typeof row.customer_id !== "string" || typeof row.message_preview !== "string") {
+    throw createMappingError("mapCustomerNotificationEvent", "Missing or invalid required fields");
+  }
+  return {
+    id: row.id,
+    centerId: row.center_id,
+    customerId: row.customer_id,
+    appointmentId: typeof row.appointment_id === "string" ? row.appointment_id : undefined,
+    channel: (typeof row.channel === "string" ? row.channel : "SYSTEM") as any,
+    direction: (typeof row.direction === "string" ? row.direction : "OUTBOUND") as any,
+    templateKey: typeof row.template_key === "string" ? row.template_key : undefined,
+    messagePreview: row.message_preview,
+    deliveryStatus: (typeof row.delivery_status === "string" ? row.delivery_status : "QUEUED") as any,
+    sentAt: parseOptionalDate(row.sent_at, "sent_at", "mapCustomerNotificationEvent"),
+    createdAt: parseDate(row.created_at, "created_at", "mapCustomerNotificationEvent"),
+  };
+}
+
+export function mapAccountingJournalEntry(row: unknown): AccountingJournalEntry {
+  assertRowObject(row, "mapAccountingJournalEntry");
+  if (typeof row.id !== "string" || typeof row.center_id !== "string" || typeof row.description !== "string") {
+    throw createMappingError("mapAccountingJournalEntry", "Missing or invalid required fields");
+  }
+  return {
+    id: row.id,
+    centerId: row.center_id,
+    entryDate: parseDate(row.entry_date, "entry_date", "mapAccountingJournalEntry"),
+    entryType: (typeof row.entry_type === "string" ? row.entry_type : "ADJUSTMENT") as any,
+    referenceType: typeof row.reference_type === "string" ? row.reference_type : undefined,
+    referenceId: typeof row.reference_id === "string" ? row.reference_id : undefined,
+    description: row.description,
+    debitAccount: typeof row.debit_account === "string" ? row.debit_account : "",
+    creditAccount: typeof row.credit_account === "string" ? row.credit_account : "",
+    amount: Number(row.amount) || 0,
+    currency: typeof row.currency === "string" ? row.currency : "OMR",
+    createdAt: parseDate(row.created_at, "created_at", "mapAccountingJournalEntry"),
+    updatedAt: parseDate(row.updated_at, "updated_at", "mapAccountingJournalEntry"),
+  };
+}
+
+export function mapAiBookingLead(row: unknown): AiBookingLead {
+  assertRowObject(row, "mapAiBookingLead");
+  if (typeof row.id !== "string" || typeof row.center_id !== "string" || typeof row.customer_name !== "string") {
+    throw createMappingError("mapAiBookingLead", "Missing or invalid required fields");
+  }
+  return {
+    id: row.id,
+    centerId: row.center_id,
+    customerName: row.customer_name,
+    customerPhone: typeof row.customer_phone === "string" ? row.customer_phone : undefined,
+    preferredServiceId: typeof row.preferred_service_id === "string" ? row.preferred_service_id : undefined,
+    preferredDate: parseOptionalDate(row.preferred_date, "preferred_date", "mapAiBookingLead"),
+    sourceChannel: (typeof row.source_channel === "string" ? row.source_channel : "WEB") as any,
+    status: (typeof row.status === "string" ? row.status : "NEW") as any,
+    summary: typeof row.summary === "string" ? row.summary : undefined,
+    createdAt: parseDate(row.created_at, "created_at", "mapAiBookingLead"),
+    updatedAt: parseDate(row.updated_at, "updated_at", "mapAiBookingLead"),
   };
 }

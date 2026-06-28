@@ -38,6 +38,10 @@ export function GlobalSearch() {
     { id: "notifications", title: t("Notifications"), category: t("Navigation"), path: "/notifications", icon: "🔔" },
     { id: "payment-gateway", title: t("Payment Gateway"), category: t("Navigation"), path: "/payment-gateway", icon: "💳" },
     { id: "client-portal", title: t("Client Portal"), category: t("Navigation"), path: "/portal", icon: "🪪" },
+    { id: "customer-experience", title: t("Customer Experience"), category: t("Navigation"), path: "/customer-experience", icon: "✨" },
+    { id: "forecasting", title: t("Forecasting"), category: t("Navigation"), path: "/forecasting", icon: "📉" },
+    { id: "accounting", title: t("Accounting"), category: t("Navigation"), path: "/accounting", icon: "📚" },
+    { id: "advanced-automation", title: t("Advanced Automation"), category: t("Navigation"), path: "/advanced-automation", icon: "🤖" },
   ];
 
   // Keyboard shortcuts

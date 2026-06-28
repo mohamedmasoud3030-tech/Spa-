@@ -22,6 +22,10 @@ const NotificationsSettingsPage = lazy(() => import("./pages/NotificationsSettin
 const PaymentGatewaySettingsPage = lazy(() => import("./pages/PaymentGatewaySettingsPage"));
 const GiftCardsPage = lazy(() => import("./pages/GiftCardsPage"));
 const PackagesPage = lazy(() => import("./pages/PackagesPage"));
+const CustomerExperiencePage = lazy(() => import("./pages/CustomerExperiencePage"));
+const ForecastingPage = lazy(() => import("./pages/ForecastingPage"));
+const AccountingPage = lazy(() => import("./pages/AccountingPage"));
+const AdvancedAutomationPage = lazy(() => import("./pages/AdvancedAutomationPage"));
 
 // صفحات الموظفين والحضور
 const PayrollPageEnhanced = lazy(() => import("./pages/PayrollPageEnhanced"));
@@ -49,6 +53,8 @@ export function AppRoutes() {
           <Route path="/customers" element={<Suspense fallback={<PageLoader />}><CustomersPage /></Suspense>} />
           <Route path="/gift-cards" element={<Suspense fallback={<PageLoader />}><GiftCardsPage /></Suspense>} />
           <Route path="/packages" element={<Suspense fallback={<PageLoader />}><PackagesPage /></Suspense>} />
+          <Route path="/customer-experience" element={<Suspense fallback={<PageLoader />}><CustomerExperiencePage /></Suspense>} />
+          <Route path="/forecasting" element={<Suspense fallback={<PageLoader />}><ForecastingPage /></Suspense>} />
           <Route path="/employees" element={<Suspense fallback={<PageLoader />}><EmployeesPage /></Suspense>} />
           <Route path="/inventory" element={<Suspense fallback={<PageLoader />}><InventoryPage /></Suspense>} />
           <Route path="/expenses" element={<Suspense fallback={<PageLoader />}><ExpensesPage /></Suspense>} />
@@ -64,6 +70,8 @@ export function AppRoutes() {
             <Route path="/settings" element={<Suspense fallback={<PageLoader />}><SettingsPage /></Suspense>} />
             <Route path="/notifications" element={<Suspense fallback={<PageLoader />}><NotificationsSettingsPage /></Suspense>} />
             <Route path="/payment-gateway" element={<Suspense fallback={<PageLoader />}><PaymentGatewaySettingsPage /></Suspense>} />
+            <Route path="/accounting" element={<Suspense fallback={<PageLoader />}><AccountingPage /></Suspense>} />
+            <Route path="/advanced-automation" element={<Suspense fallback={<PageLoader />}><AdvancedAutomationPage /></Suspense>} />
             <Route path="/branding" element={<Suspense fallback={<PageLoader />}><BrandingSettingsPage /></Suspense>} />
           </Route>
 

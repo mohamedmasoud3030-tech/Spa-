@@ -13,7 +13,11 @@ import {
   ReportRepository,
   BookingRepository,
   GiftCardRepository,
-  ServicePackageRepository
+  ServicePackageRepository,
+  CustomerExperienceRepository,
+  ForecastRepository,
+  AccountingRepository,
+  AdvancedRepository
 } from "../domain/ports/repositories";
 import {
   SupabaseAuthAdapter,
@@ -29,7 +33,11 @@ import {
   SupabaseReportAdapter,
   SupabaseBookingAdapter,
   SupabaseGiftCardAdapter,
-  SupabaseServicePackageAdapter
+  SupabaseServicePackageAdapter,
+  SupabaseCustomerExperienceAdapter,
+  SupabaseForecastAdapter,
+  SupabaseAccountingAdapter,
+  SupabaseAdvancedAdapter
 } from "./supabase";
 
 export interface RepositoryBundle {
@@ -47,6 +55,10 @@ export interface RepositoryBundle {
   bookingAdapter: BookingRepository;
   giftCardAdapter: GiftCardRepository;
   servicePackageAdapter: ServicePackageRepository;
+  customerExperienceAdapter: CustomerExperienceRepository;
+  forecastAdapter: ForecastRepository;
+  accountingAdapter: AccountingRepository;
+  advancedAdapter: AdvancedRepository;
 }
 
 export class InfrastructureError extends Error {
@@ -72,7 +84,11 @@ export function createRepositoryBundle(): RepositoryBundle {
       reportAdapter: new SupabaseReportAdapter(),
       bookingAdapter: new SupabaseBookingAdapter(),
       giftCardAdapter: new SupabaseGiftCardAdapter(),
-      servicePackageAdapter: new SupabaseServicePackageAdapter()
+      servicePackageAdapter: new SupabaseServicePackageAdapter(),
+      customerExperienceAdapter: new SupabaseCustomerExperienceAdapter(),
+      forecastAdapter: new SupabaseForecastAdapter(),
+      accountingAdapter: new SupabaseAccountingAdapter(),
+      advancedAdapter: new SupabaseAdvancedAdapter()
     };
   }
 
