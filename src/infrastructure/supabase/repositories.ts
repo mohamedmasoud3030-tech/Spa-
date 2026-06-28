@@ -2,7 +2,7 @@ import {
   AuthRepository, CustomerRepository, EmployeeRepository, ServiceRepository, 
   AppointmentRepository, ProductRepository, ExpenseRepository, InvoiceRepository, 
   SettingsRepository, DashboardRepository, ReportRepository, Result, DomainError, AuthError,
-  BookingRepository, BookingInput, PublicService, PublicStaff, PublicCenterInfo
+  BookingRepository, BookingInput, PublicService, PublicStaff, PublicCenterInfo, GiftCardRepository
 } from "../../domain/ports/repositories";
 import { 
   Customer, Employee, Service, Appointment, Product, Expense, Invoice, 
@@ -15,7 +15,7 @@ import {
 import { getSupabaseClient } from "./client";
 import { 
   mapCustomer, mapEmployee, mapService, mapProduct, mapAppointment, mapExpense, mapCenterSettings,
-  mapAuthSession, mapInvoice, mapInvoiceItem
+  mapAuthSession, mapInvoice, mapInvoiceItem, mapGiftCard, mapGiftCardTransaction
 } from "./mappers";
 import { tenantContext, requireConfiguredCenterId } from "../tenantContext";
 import { CheckoutPayload, InvoicePrintData, DashboardSummary, PnlData, ChartData, SalesReportRow, AppointmentReportRow, InventoryReportRow, BackupPayload, validateBackupPayload } from "../../application/dto";
@@ -748,7 +748,8 @@ class SupabaseInvoiceAdapter implements InvoiceRepository {
         p_payment_method: payload.paymentMethod,
         p_discount_amount: payload.discountAmount || 0,
         p_use_loyalty_points: payload.useLoyaltyPoints || false,
-        p_items: payload.items
+        p_items: payload.items,
+        p_gift_card_code: payload.giftCardCode || null
       });
       
       if (error) {
@@ -1347,6 +1348,67 @@ class SupabaseReportAdapter implements ReportRepository {
   }
 }
 
+class SupabaseGiftCardAdapter implements GiftCardRepository {
+  async list(): Promise<Result<any[], DomainError>> {
+    const centerRes = getCenterIdFor("GiftCard.list");
+    if (!centerRes.ok) return centerRes as any;
+    try {
+      const { data, error } = await getSupabaseClient()
+        .from('gift_cards')
+        .select('*')
+        .eq('center_id', centerRes.data)
+        .order('created_at', { ascending: false });
+      if (error) return { ok: false, error: createQueryError("GiftCard.list", error.message) };
+      return { ok: true, data: (data || []).map(mapGiftCard) };
+    } catch (e: unknown) {
+      return { ok: false, error: createQueryError("GiftCard.list", (e as Error).message) };
+    }
+  }
+
+  async issue(input: { code: string; initialBalance: number; customerId?: string; note?: string; expiresAtISO?: string }): Promise<Result<any, DomainError>> {
+    const centerRes = getCenterIdFor("GiftCard.issue");
+    if (!centerRes.ok) return centerRes as any;
+    try {
+      const { data, error } = await getSupabaseClient().rpc('issue_gift_card_v1', {
+        p_center_id: centerRes.data,
+        p_code: input.code,
+        p_initial_balance: input.initialBalance,
+        p_customer_id: input.customerId || null,
+        p_note: input.note || null,
+        p_expires_at: input.expiresAtISO || null,
+      });
+      if (error) {
+        if (error.code === 'PGRST202' || error.code === '42883' || error.message?.includes('Could not find the function')) {
+          return { ok: false, error: createUnsupportedWriteError("GiftCard.issue") };
+        }
+        return { ok: false, error: createQueryError("GiftCard.issue", error.message) };
+      }
+      const row = (data || {}) as any;
+      if (!row.gift_card) return { ok: false, error: createQueryError("GiftCard.issue", "Invalid response from gift card RPC") };
+      return { ok: true, data: mapGiftCard(row.gift_card) };
+    } catch (e: unknown) {
+      return { ok: false, error: createQueryError("GiftCard.issue", (e as Error).message) };
+    }
+  }
+
+  async getTransactions(giftCardId: string): Promise<Result<any[], DomainError>> {
+    const centerRes = getCenterIdFor("GiftCard.getTransactions");
+    if (!centerRes.ok) return centerRes as any;
+    try {
+      const { data, error } = await getSupabaseClient()
+        .from('gift_card_transactions')
+        .select('*')
+        .eq('center_id', centerRes.data)
+        .eq('gift_card_id', giftCardId)
+        .order('created_at', { ascending: false });
+      if (error) return { ok: false, error: createQueryError("GiftCard.getTransactions", error.message) };
+      return { ok: true, data: (data || []).map(mapGiftCardTransaction) };
+    } catch (e: unknown) {
+      return { ok: false, error: createQueryError("GiftCard.getTransactions", (e as Error).message) };
+    }
+  }
+}
+
 class SupabaseBookingAdapter implements BookingRepository {
   async listServices(): Promise<Result<PublicService[], DomainError>> {
     const centerRes = getCenterIdFor("Booking.listServices");
@@ -1445,5 +1507,6 @@ export {
   SupabaseSettingsAdapter,
   SupabaseDashboardAdapter,
   SupabaseReportAdapter,
+  SupabaseGiftCardAdapter,
   SupabaseBookingAdapter
 };

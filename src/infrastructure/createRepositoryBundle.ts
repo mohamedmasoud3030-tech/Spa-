@@ -11,7 +11,8 @@ import {
   SettingsRepository,
   DashboardRepository,
   ReportRepository,
-  BookingRepository
+  BookingRepository,
+  GiftCardRepository
 } from "../domain/ports/repositories";
 import {
   SupabaseAuthAdapter,
@@ -25,7 +26,8 @@ import {
   SupabaseSettingsAdapter,
   SupabaseDashboardAdapter,
   SupabaseReportAdapter,
-  SupabaseBookingAdapter
+  SupabaseBookingAdapter,
+  SupabaseGiftCardAdapter
 } from "./supabase";
 
 export interface RepositoryBundle {
@@ -41,6 +43,7 @@ export interface RepositoryBundle {
   dashboardAdapter: DashboardRepository;
   reportAdapter: ReportRepository;
   bookingAdapter: BookingRepository;
+  giftCardAdapter: GiftCardRepository;
 }
 
 export class InfrastructureError extends Error {
@@ -64,7 +67,8 @@ export function createRepositoryBundle(): RepositoryBundle {
       settingsAdapter: new SupabaseSettingsAdapter(),
       dashboardAdapter: new SupabaseDashboardAdapter(),
       reportAdapter: new SupabaseReportAdapter(),
-      bookingAdapter: new SupabaseBookingAdapter()
+      bookingAdapter: new SupabaseBookingAdapter(),
+      giftCardAdapter: new SupabaseGiftCardAdapter()
     };
   }
 

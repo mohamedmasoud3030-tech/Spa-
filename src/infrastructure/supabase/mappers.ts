@@ -1,6 +1,6 @@
 import { 
   Customer, Employee, Service, Appointment, Product, Expense, Invoice, InvoiceItem, CenterSettings,
-  AppointmentStatus
+  AppointmentStatus, GiftCard, GiftCardTransaction
 } from "../../domain/entities";
 import { UserRole, SessionState, AuthenticatedSession } from "../../domain/entities/Session";
 import { createMappingError } from "./errors";
@@ -245,4 +245,45 @@ export function mapAuthSession(session: SupabaseSession | null): SessionState {
             }
         }
     };
+}
+
+
+export function mapGiftCard(row: unknown): GiftCard {
+  assertRowObject(row, "mapGiftCard");
+  if (typeof row.id !== "string" || typeof row.center_id !== "string" || typeof row.code !== "string") {
+    throw createMappingError("mapGiftCard", "Missing or invalid required fields (id, center_id, code)");
+  }
+  return {
+    id: row.id,
+    centerId: row.center_id,
+    code: row.code,
+    initialBalance: Number(row.initial_balance) || 0,
+    currentBalance: Number(row.current_balance) || 0,
+    customerId: typeof row.customer_id === "string" ? row.customer_id : undefined,
+    note: typeof row.note === "string" ? row.note : undefined,
+    expiresAt: parseOptionalDate(row.expires_at, "expires_at", "mapGiftCard"),
+    isActive: typeof row.is_active === "boolean" ? row.is_active : true,
+    createdAt: parseDate(row.created_at, "created_at", "mapGiftCard"),
+    updatedAt: parseDate(row.updated_at, "updated_at", "mapGiftCard")
+  };
+}
+
+export function mapGiftCardTransaction(row: unknown): GiftCardTransaction {
+  assertRowObject(row, "mapGiftCardTransaction");
+  if (typeof row.id !== "string" || typeof row.gift_card_id !== "string" || typeof row.center_id !== "string" || typeof row.kind !== "string") {
+    throw createMappingError("mapGiftCardTransaction", "Missing or invalid required fields (id, gift_card_id, center_id, kind)");
+  }
+  if (!["ISSUED", "REDEEMED", "ADJUSTED"].includes(row.kind)) {
+    throw createMappingError("mapGiftCardTransaction", `Invalid gift card transaction kind (${row.kind})`);
+  }
+  return {
+    id: row.id,
+    giftCardId: row.gift_card_id,
+    centerId: row.center_id,
+    kind: row.kind as "ISSUED" | "REDEEMED" | "ADJUSTED",
+    amount: Number(row.amount) || 0,
+    invoiceId: typeof row.invoice_id === "string" ? row.invoice_id : undefined,
+    note: typeof row.note === "string" ? row.note : undefined,
+    createdAt: parseDate(row.created_at, "created_at", "mapGiftCardTransaction")
+  };
 }

@@ -66,6 +66,31 @@ export interface Appointment {
   updatedAt: Date;
 }
 
+export interface GiftCard {
+  id: string;
+  centerId: string;
+  code: string;
+  initialBalance: number;
+  currentBalance: number;
+  customerId?: string;
+  note?: string;
+  expiresAt?: Date;
+  isActive: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface GiftCardTransaction {
+  id: string;
+  giftCardId: string;
+  centerId: string;
+  kind: "ISSUED" | "REDEEMED" | "ADJUSTED";
+  amount: number;
+  invoiceId?: string;
+  note?: string;
+  createdAt: Date;
+}
+
 export interface Product {
   id: string;
   name: string;

@@ -44,6 +44,8 @@ export default function PosInvoicesPage() {
   const [discount, setDiscount] = useState(0);
   const [taxRate, setTaxRate] = useState(0);
   const [useLoyaltyPoints, setUseLoyaltyPoints] = useState(false);
+  const [giftCardCode, setGiftCardCode] = useState("");
+  const [giftCards, setGiftCards] = useState<any[]>([]);
   const [searchQ, setSearchQ] = useState("");
   const [itemSearchQ, setItemSearchQ] = useState("");
   const [activeTab, setActiveTab] = useState<"SERVICES" | "PRODUCTS">("SERVICES");
@@ -83,15 +85,17 @@ export default function PosInvoicesPage() {
   async function loadData() {
     setLoading(true);
     try {
-      const [s, p, e, settings] = await Promise.all([
+      const [s, p, e, settings, gc] = await Promise.all([
         unwrap(useCases.services.list()),
         unwrap(useCases.products.list()),
         unwrap(useCases.employees.list()),
         useCases.settings.get().then((r) => (r.ok ? r.data : null)).catch(() => null),
+        useCases.giftCards.list().then((r: any) => (r.ok ? r.data : [])).catch(() => []),
       ]);
       setServices(s);
       setProducts(p);
       setEmployees(e);
+      setGiftCards(gc);
       if (settings && typeof settings.taxRate === "number") setTaxRate(settings.taxRate);
     } finally {
       setLoading(false);
@@ -126,6 +130,7 @@ export default function PosInvoicesPage() {
     setSelectedCustomer(null);
     setDiscount(0);
     setUseLoyaltyPoints(false);
+    setGiftCardCode("");
   }
 
   const subtotal = cart.reduce((sum, item) => sum + Number(item.price) * Number(item.qty ?? 1), 0);
@@ -141,9 +146,13 @@ export default function PosInvoicesPage() {
     useLoyaltyPoints && selectedCustomer
       ? Math.max(0, Math.min(subtotal - discount - tierDiscount, selectedCustomer.loyaltyPoints))
       : 0;
+  const selectedGiftCard = giftCards.find((card) => card.code === giftCardCode.trim().toUpperCase());
+  const giftCardDiscount = selectedGiftCard
+    ? Math.max(0, Math.min(subtotal - discount - tierDiscount - loyaltyDiscount, selectedGiftCard.currentBalance))
+    : 0;
   // Net (pre-tax) after discounts, then VAT from center settings, then total.
   // Mirrors the server RPC exactly so the preview equals what is persisted.
-  const net = Math.max(0, subtotal - discount - tierDiscount - loyaltyDiscount);
+  const net = Math.max(0, subtotal - discount - tierDiscount - loyaltyDiscount - giftCardDiscount);
   const tax = Math.round(net * (taxRate || 0) / 100 * 1000) / 1000;
   const total = net + tax;
 
@@ -153,7 +162,7 @@ export default function PosInvoicesPage() {
       return;
     }
 
-    if (discount + tierDiscount + loyaltyDiscount > subtotal) {
+    if (discount + tierDiscount + loyaltyDiscount + giftCardDiscount > subtotal) {
       showToast('error', t("Error"), t("Discount cannot exceed subtotal"));
       return;
     }
@@ -176,6 +185,7 @@ export default function PosInvoicesPage() {
         paymentMethod: paymentMethod.toLowerCase() as "cash" | "card" | "transfer",
         discountAmount: discount,
         useLoyaltyPoints,
+        giftCardCode: giftCardCode.trim() ? giftCardCode.trim().toUpperCase() : undefined,
         items: cart.map(it => {
           if (it.type === "service") {
             return {
@@ -621,6 +631,24 @@ export default function PosInvoicesPage() {
                     </button>
                   </motion.div>
                 )}
+
+                <div className="space-y-2">
+                  <label className="flex items-center gap-2 text-[9px] font-bold uppercase tracking-[0.2em] text-muted-foreground">
+                    <CreditCard className="h-3 w-3" />
+                    {t("Gift Card")}
+                  </label>
+                  <input
+                    className="w-full rounded-lg border border-border bg-card px-3 py-2.5 text-xs font-bold outline-none focus:ring-4 focus:ring-primary/10 transition-all"
+                    placeholder={t("Enter gift card code")}
+                    value={giftCardCode}
+                    onChange={(e) => setGiftCardCode(e.target.value.toUpperCase())}
+                  />
+                  {selectedGiftCard && (
+                    <p className="text-[9px] font-bold text-sky-600 uppercase tracking-widest">
+                      {t("Available Balance")}: {selectedGiftCard.currentBalance.toFixed(2)} {t("OMR")} · {t("Redeem for")} {giftCardDiscount.toFixed(2)} {t("OMR")}
+                    </p>
+                  )}
+                </div>
               </div>
 
               {/* Summary & Checkout */}
@@ -636,10 +664,16 @@ export default function PosInvoicesPage() {
                       <span>-{tierDiscount.toFixed(2)} OMR</span>
                     </div>
                   )}
-                  {(discount > 0 || loyaltyDiscount > 0) && (
+                  {(discount > 0 || loyaltyDiscount > 0 || giftCardDiscount > 0) && (
                     <div className="flex items-center justify-between text-[9px] font-bold text-rose-500 uppercase tracking-widest">
                       <span>{t("Discounts")}</span>
-                      <span>-{(discount + loyaltyDiscount).toFixed(2)} OMR</span>
+                      <span>-{(discount + loyaltyDiscount + giftCardDiscount).toFixed(2)} OMR</span>
+                    </div>
+                  )}
+                  {giftCardDiscount > 0 && (
+                    <div className="flex items-center justify-between text-[9px] font-bold text-sky-600 uppercase tracking-widest">
+                      <span>{t("Gift Card Redemption")}</span>
+                      <span>-{giftCardDiscount.toFixed(2)} OMR</span>
                     </div>
                   )}
                   {taxRate > 0 && (

@@ -1,7 +1,7 @@
 import { createRepositoryBundle } from "../../infrastructure/createRepositoryBundle";
 import { Result, BookingInput } from "../../domain/ports/repositories";
-import { Appointment, Customer, Employee, Expense, Product, Service, CenterSettings, Invoice } from "../../domain/entities";
-import { CheckoutPayload, BackupPayload } from "../../application/dto";
+import { Appointment, Customer, Employee, Expense, Product, Service, CenterSettings } from "../../domain/entities";
+import { CheckoutPayload, BackupPayload, IssueGiftCardInput } from "../../application/dto";
 import { tenantContext, requireConfiguredCenterId, setActiveCenter } from "../../infrastructure/tenantContext";
 
 type RepositoryBundle = ReturnType<typeof createRepositoryBundle>;
@@ -15,8 +15,6 @@ export function getRepositoryBundle(): RepositoryBundle {
   return repositoryBundle;
 }
 
-// Generic helper to unwrap Result and enforce errors instead of silently failing,
-// but for our React hooks we will pass the promise.
 export const useCases = {
   auth: {
     login: (u: string, p: string) => getRepositoryBundle().authAdapter.login(u, p),
@@ -34,11 +32,7 @@ export const useCases = {
     create: async (data: Partial<Appointment>) => getRepositoryBundle().appointmentAdapter.create(data),
     update: async (id: string, data: Partial<Appointment>) => getRepositoryBundle().appointmentAdapter.update(id, data),
     delete: async (id: string) => getRepositoryBundle().appointmentAdapter.delete(id),
-    sendReminder: async (id: string): Promise<Result<void, any>> => {
-      // Stub: returns success immediately
-      // Backend: would send SMS/email reminder via Supabase function
-      return { ok: true, data: undefined };
-    },
+    sendReminder: async (_id: string): Promise<Result<void, any>> => ({ ok: true, data: undefined }),
   },
   services: {
     list: () => getRepositoryBundle().serviceAdapter.list(),
@@ -84,6 +78,11 @@ export const useCases = {
     checkout: async (data: CheckoutPayload) => getRepositoryBundle().invoiceAdapter.checkout(data),
     getForPrint: (id: string) => getRepositoryBundle().invoiceAdapter.getForPrint(id),
   },
+  giftCards: {
+    list: () => getRepositoryBundle().giftCardAdapter.list(),
+    issue: (input: IssueGiftCardInput) => getRepositoryBundle().giftCardAdapter.issue(input),
+    getTransactions: (giftCardId: string) => getRepositoryBundle().giftCardAdapter.getTransactions(giftCardId),
+  },
   reports: {
     getSales: (f: string, t: string) => getRepositoryBundle().reportAdapter.getSales(f, t),
     getAppointments: (f: string, t: string) => getRepositoryBundle().reportAdapter.getAppointments(f, t),
@@ -97,9 +96,7 @@ export const useCases = {
     createBooking: (input: BookingInput) => getRepositoryBundle().bookingAdapter.createBooking(input),
   },
   tenant: {
-    setActiveCenterId: (id: string | null) => {
-      setActiveCenter(id);
-    },
+    setActiveCenterId: (id: string | null) => { setActiveCenter(id); },
     getActiveCenterId: () => {
       try {
         return requireConfiguredCenterId();

@@ -29,6 +29,7 @@ import {
   CreditCard,
   ChevronDown,
   Sparkles,
+  Gift,
 } from "lucide-react";
 import { clsx } from "clsx";
 import { useAuth } from "../../auth";

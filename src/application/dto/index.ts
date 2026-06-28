@@ -23,6 +23,7 @@ export interface CheckoutPayload {
   employeeId?: string; 
   discountAmount?: number;
   useLoyaltyPoints?: boolean;
+  giftCardCode?: string;
   paymentMethod: PaymentMethod;
   items: CheckoutItem[];
 }
@@ -141,4 +142,13 @@ export function validateBackupPayload(payload: any): payload is BackupPayload {
   if (typeof payload.version !== "string") return false;
   if (!payload.data || typeof payload.data !== "object") return false;
   return true;
+}
+
+
+export interface IssueGiftCardInput {
+  code: string;
+  initialBalance: number;
+  customerId?: string;
+  note?: string;
+  expiresAtISO?: string;
 }

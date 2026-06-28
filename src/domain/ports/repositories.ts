@@ -1,6 +1,6 @@
 import {
   Customer, Employee, Service, ServiceCategory,
-  Appointment, Product, Invoice, Expense, ActivityLog, CenterSettings
+  Appointment, Product, Invoice, Expense, ActivityLog, CenterSettings, GiftCard, GiftCardTransaction
 } from "../entities";
 import { User, SessionState } from "../entities/Session";
 
@@ -73,6 +73,12 @@ export interface InvoiceRepository {
   getForPrint(id: string): Promise<Result<InvoicePrintData, DomainError>>;
 }
 
+export interface GiftCardRepository {
+  list(): Promise<Result<GiftCard[], DomainError>>;
+  issue(input: { code: string; initialBalance: number; customerId?: string; note?: string; expiresAtISO?: string }): Promise<Result<GiftCard, DomainError>>;
+  getTransactions(giftCardId: string): Promise<Result<GiftCardTransaction[], DomainError>>;
+}
+
 export interface SettingsRepository {
   get(): Promise<Result<CenterSettings, DomainError>>;
   update(data: Partial<CenterSettings>): Promise<Result<CenterSettings, DomainError>>;
@@ -94,7 +100,6 @@ export interface ReportRepository {
   getInventory(): Promise<Result<InventoryReportRow[], DomainError>>;
 }
 
-// ---- Public (no-auth) online booking ----
 export interface PublicService { id: string; name: string; price: number; durationMinutes: number; }
 export interface PublicStaff { id: string; name: string; }
 export interface PublicCenterInfo { name: string; currency: string; phone?: string; address?: string; }

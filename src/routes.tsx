@@ -18,6 +18,7 @@ const ExpensesPage = lazy(() => import("./pages/ExpensesPage"));
 const ReportsPage = lazy(() => import("./pages/ReportsPage"));
 const SettingsPage = lazy(() => import("./pages/SettingsPage"));
 const NotificationsSettingsPage = lazy(() => import("./pages/NotificationsSettingsPage"));
+const GiftCardsPage = lazy(() => import("./pages/GiftCardsPage"));
 
 // صفحات الموظفين والحضور
 const PayrollPageEnhanced = lazy(() => import("./pages/PayrollPageEnhanced"));
