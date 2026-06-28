@@ -41,6 +41,7 @@ export default function PosInvoicesPage() {
   const [selectedEmployee, setSelectedEmployee] = useState<string>("");
   const [paymentMethod, setPaymentMethod] = useState("CASH");
   const [discount, setDiscount] = useState(0);
+  const [taxRate, setTaxRate] = useState(0);
   const [useLoyaltyPoints, setUseLoyaltyPoints] = useState(false);
   const [searchQ, setSearchQ] = useState("");
   const [itemSearchQ, setItemSearchQ] = useState("");
@@ -81,14 +82,16 @@ export default function PosInvoicesPage() {
   async function loadData() {
     setLoading(true);
     try {
-      const [s, p, e] = await Promise.all([
+      const [s, p, e, settings] = await Promise.all([
         unwrap(useCases.services.list()),
         unwrap(useCases.products.list()),
         unwrap(useCases.employees.list()),
+        useCases.settings.get().then((r) => (r.ok ? r.data : null)).catch(() => null),
       ]);
       setServices(s);
       setProducts(p);
       setEmployees(e);
+      if (settings && typeof settings.taxRate === "number") setTaxRate(settings.taxRate);
     } finally {
       setLoading(false);
     }
@@ -132,7 +135,11 @@ export default function PosInvoicesPage() {
     useLoyaltyPoints && selectedCustomer
       ? Math.max(0, Math.min(subtotal - discount, selectedCustomer.loyaltyPoints))
       : 0;
-  const total = Math.max(0, subtotal - discount - loyaltyDiscount);
+  // Net (pre-tax) after discounts, then VAT from center settings, then total.
+  // Mirrors the server RPC exactly so the preview equals what is persisted.
+  const net = Math.max(0, subtotal - discount - loyaltyDiscount);
+  const tax = Math.round(net * (taxRate || 0) / 100 * 1000) / 1000;
+  const total = net + tax;
 
   async function handleCheckout() {
     if (!selectedCustomer || !selectedEmployee || cart.length === 0) {
@@ -621,6 +628,12 @@ export default function PosInvoicesPage() {
                     <div className="flex items-center justify-between text-[9px] font-bold text-rose-500 uppercase tracking-widest">
                       <span>{t("Discounts")}</span>
                       <span>-{(discount + loyaltyDiscount).toFixed(2)} OMR</span>
+                    </div>
+                  )}
+                  {taxRate > 0 && (
+                    <div className="flex items-center justify-between text-[9px] font-bold text-muted-foreground uppercase tracking-widest">
+                      <span>{t("VAT")} ({taxRate}%)</span>
+                      <span>{tax.toFixed(2)} OMR</span>
                     </div>
                   )}
                   <div className="flex items-center justify-between pt-2 border-t border-border/50">

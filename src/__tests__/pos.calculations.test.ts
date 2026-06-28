@@ -22,8 +22,17 @@ function loyaltyDiscountOf(subtotal: number, discount: number, points: number, u
   return Math.max(0, Math.min(subtotal - discount, points));
 }
 
-function totalOf(subtotal: number, discount: number, loyalty: number): number {
+function netOf(subtotal: number, discount: number, loyalty: number): number {
   return Math.max(0, subtotal - discount - loyalty);
+}
+
+function taxOf(net: number, taxRate: number): number {
+  return Math.round((net * (taxRate || 0)) / 100 * 1000) / 1000;
+}
+
+function totalOf(subtotal: number, discount: number, loyalty: number, taxRate = 0): number {
+  const net = netOf(subtotal, discount, loyalty);
+  return net + taxOf(net, taxRate);
 }
 
 describe("POS calculations (mirror server RPC)", () => {
@@ -51,9 +60,27 @@ describe("POS calculations (mirror server RPC)", () => {
     expect(totalOf(sub, 0, loy)).toBe(0);
   });
 
-  it("earned points = floor(total)", () => {
+  it("earned points = floor(net) (pre-tax)", () => {
     const sub = subtotalOf([{ price: 12.7, qty: 2 }]); // 25.4
-    const total = totalOf(sub, 5, 0); // 20.4
-    expect(Math.floor(total)).toBe(20);
+    const net = netOf(sub, 5, 0); // 20.4
+    expect(Math.floor(net)).toBe(20);
+  });
+
+  it("applies VAT on the net (post-discount, pre-tax) amount", () => {
+    const sub = subtotalOf([{ price: 100 }]); // 100
+    const net = netOf(sub, 0, 0); // 100
+    expect(taxOf(net, 5)).toBe(5); // 5% VAT (Oman)
+    expect(totalOf(sub, 0, 0, 5)).toBe(105);
+  });
+
+  it("VAT is computed after discounts, not before", () => {
+    const sub = subtotalOf([{ price: 100 }]);
+    // 20 discount -> net 80 -> 5% = 4 -> total 84
+    expect(totalOf(sub, 20, 0, 5)).toBe(84);
+  });
+
+  it("zero tax rate leaves the total unchanged", () => {
+    const sub = subtotalOf([{ price: 50 }]);
+    expect(totalOf(sub, 0, 0, 0)).toBe(50);
   });
 });

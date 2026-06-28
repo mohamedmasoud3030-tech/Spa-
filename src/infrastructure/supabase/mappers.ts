@@ -196,6 +196,7 @@ export function mapInvoice(row: unknown): Invoice {
     date: parseDate(row.date || row.created_at, "date or created_at", "mapInvoice"),
     totalAmount: Number(row.total_amount),
     discount: Number(row.discount || 0),
+    tax: row.tax !== undefined && row.tax !== null ? Number(row.tax) : undefined,
     loyaltyPointsUsed: Number(row.loyalty_points_used || 0),
     paymentMethod: row.payment_method,
     customerId: row.customer_id,

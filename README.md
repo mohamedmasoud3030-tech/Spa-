@@ -64,6 +64,8 @@ Run the migrations in order in the Supabase SQL Editor:
    auth user to the center and sets their role (edit the UUID first).
 4. `supabase/migrations/20260628000003_checkout_rpc.sql` — the POS checkout
    transaction (`process_checkout_v1`). **Required for POS to work.**
+5. `supabase/migrations/20260628000004_vat_support.sql` — adds VAT/tax to
+   invoices + checkout (GCC compliance). Tax rate is set in Settings.
 
 > Note: `docs/SUPABASE_PHASE_10B_CHECKOUT_ACTIVATION.sql` is a superseded draft
 > (it assumes schema that doesn't exist) — use migration 4 instead.
