@@ -34,6 +34,7 @@
 - أوامر Rust فعلية داخل `src-tauri/src/lib.rs` لـ:
   - `desktop_db_health`
   - `desktop_export_backup`
+  - `desktop_pick_backup_file`
   - `desktop_import_backup`
   - `desktop_print_html`
 - تخزين ملف قاعدة سطح المكتب محليًا داخل app data directory بصيغة JSON transitional snapshot

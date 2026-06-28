@@ -30,15 +30,24 @@ export function DesktopOperationsCard() {
 
   async function handleImport() {
     setBusy(true);
-    const res = await desktopRepository.importBackup('manual-selection-required');
+    const fileRes = await desktopRepository.pickBackupFile();
+    if (!fileRes.ok) {
+      setBusy(false);
+      return showToast('error', t('Error'), t('Desktop backup restore requires the Tauri shell file picker'));
+    }
+    if (fileRes.data.cancelled || !fileRes.data.filePath) {
+      setBusy(false);
+      return showToast('error', t('Error'), t('Backup selection was cancelled'));
+    }
+    const res = await desktopRepository.importBackup(fileRes.data.filePath);
     setBusy(false);
-    if (!res.ok) return showToast('error', t('Error'), t('Desktop backup restore requires the Tauri shell file picker'));
+    if (!res.ok) return showToast('error', t('Error'), t('Failed to restore desktop backup'));
     showToast('success', t('Success'), t('Desktop backup restored successfully'));
   }
 
   async function handlePrint() {
     setBusy(true);
-    const res = await desktopRepository.printHtml('LenaBeauty Print Test', '<html><body><h1>LenaBeauty Desktop Print</h1><p>Print bridge ready.</p></body></html>');
+    const res = await desktopRepository.printHtml('LenaBeauty Print Test', '<html><body><h1>LenaBeauty Desktop Print</h1><p>Print bridge ready.</p></body></html>', 'desktop-operations-card');
     setBusy(false);
     if (!res.ok) return showToast('error', t('Error'), t('Desktop printing is only available inside the Tauri shell'));
     showToast('success', t('Success'), t('Desktop print job queued successfully'));

@@ -34,6 +34,14 @@ struct DesktopImportSummary {
 #[derive(Serialize)]
 struct DesktopPrintSummary {
     queued: bool,
+    file_path: String,
+    queued_at_iso: String,
+}
+
+#[derive(Serialize)]
+struct DesktopFileSelection {
+    cancelled: bool,
+    file_path: Option<String>,
 }
 
 fn unix_now() -> u64 {
@@ -109,6 +117,22 @@ fn desktop_export_backup(app: AppHandle, pretty: bool) -> Result<DesktopSnapshot
 }
 
 #[tauri::command]
+fn desktop_pick_backup_file(app: AppHandle) -> Result<DesktopFileSelection, String> {
+    let backup_dir = app_data_dir(&app)?.join("backups");
+    fs::create_dir_all(&backup_dir).map_err(|e| e.to_string())?;
+    let maybe_file = fs::read_dir(&backup_dir)
+        .map_err(|e| e.to_string())?
+        .filter_map(|entry| entry.ok())
+        .map(|entry| entry.path())
+        .find(|path| path.extension().map(|ext| ext == "json").unwrap_or(false));
+
+    Ok(DesktopFileSelection {
+        cancelled: maybe_file.is_none(),
+        file_path: maybe_file.map(|p| p.to_string_lossy().to_string()),
+    })
+}
+
+#[tauri::command]
 fn desktop_import_backup(app: AppHandle, file_path: String) -> Result<DesktopImportSummary, String> {
     let source = PathBuf::from(&file_path);
     if !source.exists() {
@@ -125,13 +149,17 @@ fn desktop_import_backup(app: AppHandle, file_path: String) -> Result<DesktopImp
 }
 
 #[tauri::command]
-fn desktop_print_html(app: AppHandle, title: String, html: String) -> Result<DesktopPrintSummary, String> {
+fn desktop_print_html(app: AppHandle, title: String, html: String, source: Option<String>) -> Result<DesktopPrintSummary, String> {
     let queue_dir = print_queue_dir(&app)?;
-    let file_name = format!("print_job_{}.html", unix_now());
+    let file_name = format!("print_job_{}_{}.html", source.unwrap_or_else(|| "web".into()), unix_now());
     let output = queue_dir.join(file_name);
     let wrapped = format!("<!doctype html><html><head><meta charset=\"utf-8\"><title>{}</title></head><body>{}</body></html>", title, html);
-    fs::write(output, wrapped.as_bytes()).map_err(|e| e.to_string())?;
-    Ok(DesktopPrintSummary { queued: true })
+    fs::write(&output, wrapped.as_bytes()).map_err(|e| e.to_string())?;
+    Ok(DesktopPrintSummary {
+        queued: true,
+        file_path: output.to_string_lossy().to_string(),
+        queued_at_iso: unix_now().to_string(),
+    })
 }
 
 pub fn run() {
@@ -146,6 +174,7 @@ pub fn run() {
             desktop_health,
             desktop_db_health,
             desktop_export_backup,
+            desktop_pick_backup_file,
             desktop_import_backup,
             desktop_print_html
         ])
