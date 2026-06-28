@@ -40,7 +40,9 @@
 - تخزين ملف قاعدة سطح المكتب محليًا داخل app data directory بصيغة JSON transitional snapshot
 - إنشاء مجلد print queue محلي لالتقاط مهام الطباعة
 - ربط أولي لطباعة سطح المكتب من تدفق POS عند توفر Tauri shell
-- بطاقة عمليات سطح المكتب مع فحص DB + export/restore/print test
+- طبقة native helper إضافية في `src/desktop/native.ts`
+- جاهزية picker/print contracts على الواجهة + Rust metadata mapping
+- تحديث `desktop:test` ليغطي كل اختبارات desktop/landing ذات الصلة
 
 ## الملاحظات
 - هذه **foundation متقدمة** داخل المستودع لكنها تعتمد على وجود Rust/Tauri toolchain على الجهاز الذي سيبني التطبيق النهائي.
