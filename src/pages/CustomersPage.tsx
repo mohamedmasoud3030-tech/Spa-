@@ -141,7 +141,7 @@ export default function CustomersPage() {
     if (!newName.trim()) return showToast('error', t("Error"), t("Please fill all fields"));
     setAdding(true);
     try {
-      await unwrap(useCases.customers.create({ name: newName, phone: newPhone || null }));
+      await unwrap(useCases.customers.create({ name: newName, phone: newPhone || undefined }));
       setNewName("");
       setNewPhone("");
       setShowAddModal(false);
@@ -169,7 +169,7 @@ export default function CustomersPage() {
     if (!editName.trim()) return showToast('error', t("Error"), t("Please fill all fields"));
     setAdding(true);
     try {
-      await unwrap(useCases.customers.update(editId, { name: editName, phone: editPhone || null }));
+      await unwrap(useCases.customers.update(editId, { name: editName, phone: editPhone || undefined }));
       setEditId(null);
       await load();
       showToast('success', t("Success"), t("Customer updated successfully"));

@@ -415,7 +415,7 @@ export default function EmployeesPage() {
             </div>
             <div>
               <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1">{t("Top Performer")}</p>
-              <h3 className="text-xl font-bold text-foreground">{employees.reduce((prev, current) => (prev.monthCommissionTotal > current.monthCommissionTotal) ? prev : current).name}</h3>
+              <h3 className="text-xl font-bold text-foreground">{employees.reduce((prev, current) => ((prev.monthCommissionTotal ?? 0) > (current.monthCommissionTotal ?? 0)) ? prev : current).name}</h3>
             </div>
           </motion.div>
 

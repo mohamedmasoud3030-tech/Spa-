@@ -206,8 +206,8 @@ export default function AppointmentsPage() {
     setCustomerId(appt.customerId);
     setCustomerQ(appt.customer?.name || "");
     setStatus(appt.status);
-    setServiceId(appt.serviceId);
-    setEmployeeId(appt.employeeId);
+    setServiceId(appt.serviceId ?? "");
+    setEmployeeId(appt.employeeId ?? "");
     setOpen(true);
   }
 

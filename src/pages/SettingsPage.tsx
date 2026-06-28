@@ -5,6 +5,7 @@ import {
   Terminal, ShieldCheck, Globe, Phone, MapPin, Hash, 
   Coins, CheckCircle2, XCircle, ChevronRight, Sparkles, Bell
 } from "lucide-react";
+import { CenterSettings } from "../domain/entities";
 import { useCases } from "../app/composition/useCases";
 import { unwrap, formatError } from "../shared/hooks/useApplication";
 import { useToast } from "../shared/components/Toast";
@@ -42,7 +43,7 @@ export default function SettingsPage() {
   const [backupInterval, setBackupInterval] = useState(30);
 
   // center settings
-  const [s, setS] = useState<any | null>(null);
+  const [s, setS] = useState<CenterSettings | null>(null);
   const [busy, setBusy] = useState(false);
 
   // users
@@ -99,7 +100,7 @@ export default function SettingsPage() {
         cr: s.cr ?? "",
         postalCode: s.postalCode ?? "",
         currency: s.currency ?? "OMR",
-        logoPath: s.logoPath ?? null,
+        logoPath: s.logoPath ?? undefined,
       }));
       setS(updated);
       showToast('success', t('Success'), t("Settings saved successfully"));
@@ -145,8 +146,8 @@ export default function SettingsPage() {
       }
       await loadUsersOnly();
       resetUserForm();
-    } catch (e) {
-      showToast('error', t("Error"), e?.message ?? t("Error"));
+    } catch (e: any) {
+      showToast("error", t("Error"), formatError(e));
     } finally {
       setUBusy(false);
     }
@@ -172,8 +173,8 @@ export default function SettingsPage() {
     try {
       await useCases.employees.delete(id);
       await loadUsersOnly();
-    } catch (e) {
-      showToast('error', t("Error"), e?.message ?? t("Error"));
+    } catch (e: any) {
+      showToast("error", t("Error"), formatError(e));
     } finally {
       setUBusy(false);
     }
