@@ -2,7 +2,7 @@ import { createRepositoryBundle } from "../../infrastructure/createRepositoryBun
 import { Result, BookingInput } from "../../domain/ports/repositories";
 import { Appointment, Customer, Employee, Expense, Product, Service, CenterSettings, Invoice } from "../../domain/entities";
 import { CheckoutPayload, BackupPayload } from "../../application/dto";
-import { tenantContext, requireConfiguredCenterId } from "../../infrastructure/tenantContext";
+import { tenantContext, requireConfiguredCenterId, setActiveCenter } from "../../infrastructure/tenantContext";
 
 type RepositoryBundle = ReturnType<typeof createRepositoryBundle>;
 
@@ -98,7 +98,7 @@ export const useCases = {
   },
   tenant: {
     setActiveCenterId: (id: string | null) => {
-      tenantContext.activeCenterId = id;
+      setActiveCenter(id);
     },
     getActiveCenterId: () => {
       try {

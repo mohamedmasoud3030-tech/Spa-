@@ -7,6 +7,7 @@ import { useTranslation } from "react-i18next";
 import { motion, AnimatePresence } from "motion/react";
 import { clsx } from "clsx";
 import { GlobalSearch } from "../../shared/components/GlobalSearch";
+import CenterSwitcher from "./CenterSwitcher";
 
 export default function Layout() {
   const nav = useNavigate();
@@ -101,6 +102,7 @@ export default function Layout() {
 
             {/* Right Actions */}
             <div className="flex items-center gap-1 sm:gap-3 ml-auto">
+              <CenterSwitcher />
               <GlobalSearch />
 
               <button className="h-10 w-10 sm:h-11 sm:w-11 rounded-lg bg-muted/50 flex items-center justify-center text-muted-foreground hover:bg-primary/10 hover:text-primary transition-all shadow-sm relative group active:scale-95" title={t("Notifications")}>
