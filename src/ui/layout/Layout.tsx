@@ -37,7 +37,7 @@ export default function Layout() {
   const isRtl = i18n.language === "ar";
 
   const bottomNavItems = [
-    { to: "/", labelKey: "Home", Icon: LayoutDashboard },
+    { to: "/dashboard", labelKey: "Home", Icon: LayoutDashboard },
     { to: "/appointments", labelKey: "Appointments", Icon: CalendarDays },
     { to: "/pos", labelKey: "POS", Icon: Receipt },
     { to: "/customers", labelKey: "Customers", Icon: Users },
@@ -194,7 +194,7 @@ export default function Layout() {
             <NavLink
               key={to}
               to={to}
-              end={to === "/"}
+              end={to === "/dashboard"}
               className={({ isActive }) =>
                 clsx(
                   "flex flex-col items-center justify-center flex-1 gap-1 transition-all duration-200 min-h-[44px]",
